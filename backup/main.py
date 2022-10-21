@@ -1,5 +1,7 @@
 import argparse
 import os
+import logging
+import sys
 from typing import Optional
 
 
@@ -32,17 +34,19 @@ def parse_args(args=None) -> argparse.Namespace:
     parser.add_argument('-t',
                         '--token',
                         type=str,
+                        default='',
                         dest='token',
                         help='personal access, OAuth, or JSON Web token, or path to token (file://...)')
     parser.add_argument('-o',
                         '--output-directory',
-                        default='.',
                         type=str,
+                        default='.',
                         dest='output_dir',
                         help='directory at which to backup the repositories')
     parser.add_argument('-r',
                         '--repository',
                         nargs='+',
+                        default='',
                         dest='repository',
                         help='name of repository to limit backup')
     parsed = parser.parse_args(args)
@@ -53,9 +57,9 @@ if __name__ == "__main__":
     parsed_args = None
     backup = None
     try:
-        parsed_args = parse_args()
-        backup = Backup(parsed_args.token, parsed_args.output_dir, parsed_args.organization, parsed_args.repositories)
+        parsed_args = parse_args(sys.argv[1:])
+        backup = Backup(parsed_args.token, parsed_args.output_dir, parsed_args.organization, parsed_args.repository)
     except argparse.ArgumentError as e:
-        print(e.message)
+        logging.error(e.message)
     except AttributeError as e:
-        print(e)
+        logging.error(e)
