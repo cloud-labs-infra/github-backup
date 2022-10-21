@@ -36,19 +36,19 @@ def parse_args(args=None) -> argparse.Namespace:
                         type=str,
                         default='',
                         dest='token',
-                        help='personal access, OAuth, or JSON Web token, or path to token (file://...)')
+                        help='personal token')
     parser.add_argument('-o',
                         '--output-directory',
                         type=str,
                         default='.',
                         dest='output_dir',
-                        help='directory at which to backup the repositories')
+                        help='directory for backup')
     parser.add_argument('-r',
                         '--repository',
                         nargs='+',
                         default='',
                         dest='repository',
-                        help='name of repository to limit backup')
+                        help='name of repositories to limit backup')
     parsed = parser.parse_args(args)
     return parsed
 
