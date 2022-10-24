@@ -39,59 +39,15 @@ class TestBackup:
     users = [
         {
             "login": "test1",
-            "id": 1,
-            "node_id": "MDQ6VXNlcjE=",
-            "avatar_url": "https://github.com/images/error/test1.gif",
-            "gravatar_id": "",
             "url": "https://api.github.com/users/test1",
             "html_url": "https://github.com/test1",
-            "followers_url": "https://api.github.com/users/test1/followers",
-            "following_url": "https://api.github.com/users/test1/following{/other_user}",
-            "gists_url": "https://api.github.com/users/test1/gists{/gist_id}",
-            "starred_url": "https://api.github.com/users/test1/starred{/owner}{/repo}",
-            "subscriptions_url": "https://api.github.com/users/test1/subscriptions",
-            "organizations_url": "https://api.github.com/users/test1/orgs",
-            "repos_url": "https://api.github.com/users/test1/repos",
-            "events_url": "https://api.github.com/users/test1/events{/privacy}",
-            "received_events_url": "https://api.github.com/users/test1/received_events",
-            "type": "User",
-            "site_admin": "false"
         },
         {
             "login": "test2",
-            "id": 2,
-            "node_id": "MDQ6VXNlcjE=",
-            "avatar_url": "https://github.com/images/error/test2.gif",
-            "gravatar_id": "",
             "url": "https://api.github.com/users/test2",
             "html_url": "https://github.com/test2",
-            "followers_url": "https://api.github.com/users/test2/followers",
-            "following_url": "https://api.github.com/users/test2/following{/other_user}",
-            "gists_url": "https://api.github.com/users/test2/gists{/gist_id}",
-            "starred_url": "https://api.github.com/users/test2/starred{/owner}{/repo}",
-            "subscriptions_url": "https://api.github.com/users/test2/subscriptions",
-            "organizations_url": "https://api.github.com/users/test2/orgs",
-            "repos_url": "https://api.github.com/users/test2/repos",
-            "events_url": "https://api.github.com/users/test2/events{/privacy}",
-            "received_events_url": "https://api.github.com/users/test2/received_events",
-            "type": "User",
-            "site_admin": "false"
         }
     ]
-    organization = {
-        "login": "org",
-        "id": 1,
-        "node_id": "MDEyOk9yZ2FuaXphdGlvbjE=",
-        "url": "https://api.github.com/orgs/org",
-        "repos_url": "https://api.github.com/orgs/org/repos",
-        "events_url": "https://api.github.com/orgs/org/events",
-        "hooks_url": "https://api.github.com/orgs/org/hooks",
-        "issues_url": "https://api.github.com/orgs/org/issues",
-        "members_url": "https://api.github.com/orgs/org/members{/member}",
-        "public_members_url": "https://api.github.com/orgs/org/public_members{/member}",
-        "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-        "description": "A great organization"
-    }
 
     def test_backup_members(self):
         with requests_mock.Mocker() as m:
@@ -105,10 +61,7 @@ class TestBackup:
                   response_list=[{'json': {
                       "url": "https://api.github.com/orgs/org/memberships/test1",
                       "state": "active",
-                      "role": "admin",
-                      "organization_url": "https://api.github.com/orgs/org",
-                      "organization": self.organization,
-                      "user": self.users[0]
+                      "role": "admin"
                   }, 'status_code': 200}])
             m.get(url='https://api.github.com/orgs/org/memberships/test2',
                   request_headers={'Accept': 'application/vnd.github+json',
@@ -116,10 +69,7 @@ class TestBackup:
                   response_list=[{'json': {
                       "url": "https://api.github.com/orgs/org/memberships/test1",
                       "state": "active",
-                      "role": "member",
-                      "organization_url": "https://api.github.com/orgs/org",
-                      "organization": self.organization,
-                      "user": self.users[1]
+                      "role": "member"
                   }, 'status_code': 200}])
             self.backup.backup_members(self.gh)
         assert os.path.isfile(self.backup.output_dir + "/members/" + "test1.json")
