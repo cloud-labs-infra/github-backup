@@ -22,7 +22,8 @@ class Backup:
         self.output_dir = output_dir
         self.repositories = repositories
         if not os.path.isdir(self.output_dir):
-            raise AttributeError('Output directory does not exist')
+            logging.warning('Output directory does not exist. It will be created')
+            os.mkdir(self.output_dir)
 
 
 def parse_args(args=None) -> argparse.Namespace:
@@ -61,5 +62,3 @@ if __name__ == "__main__":
         backup = Backup(parsed_args.token, parsed_args.output_dir, parsed_args.organization, parsed_args.repository)
     except argparse.ArgumentError as e:
         logging.error(e.message)
-    except AttributeError as e:
-        logging.error(e)
