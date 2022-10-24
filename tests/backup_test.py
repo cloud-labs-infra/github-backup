@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from backup.main import parse_args, Backup
 import pytest
@@ -29,5 +30,7 @@ class TestArgs:
 
 class TestBackup:
     def test_bad_dir(self):
-        with pytest.raises(AttributeError):
-            Backup('token', 'dir', 'organization', None)
+        assert not os.path.isdir('tmp')
+        Backup('token', 'tmp', 'organization', None)
+        assert os.path.isdir('tmp')
+        os.rmdir('tmp')
