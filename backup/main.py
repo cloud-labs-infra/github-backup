@@ -4,7 +4,6 @@ import os
 import logging
 import sys
 import time
-from datetime import timezone, datetime
 from typing import Optional
 
 import requests
@@ -32,12 +31,15 @@ class Backup:
     def backup_members(self, api):
         members_dir = self.output_dir + "/members"
         os.makedirs(members_dir, exist_ok=True)
+        logging.debug(f'Member dir is {members_dir}')
         org_members = api.get_members()
+        logging.debug(f'Got members {org_members}')
         self.__save_members(api, org_members, members_dir)
 
     def __save_members(self, api, members, dir):
         for member in members:
             status = api.get_member_status(member['login'])
+            logging.debug(f'Got status for {member["login"]}: {status}')
             backup_member = {
                 "login": member["login"],
                 "url": member["url"],
@@ -46,6 +48,7 @@ class Backup:
                 "state": status["state"]
             }
             with open(f"{dir}/{member['login']}.json", "w+") as member_file:
+                logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
 
 
@@ -73,11 +76,13 @@ class GithubAPI:
 
     def raise_by_status(self, status):
         if status == 403:
+            logging.info('Status is 403 - Rate limit exceeded exception')
             raise self.RateLimitExceededException()
         if 400 <= status < 500:
+            logging.info(f'Status is {status} - Client error')
             raise self.ClientError()
-
         elif 500 <= status < 600:
+            logging.info(f'Status is {status} - Server error')
             raise self.ServerError()
 
     def retry(func):
@@ -86,10 +91,10 @@ class GithubAPI:
                 try:
                     return func(self, *args, **kwargs)
                 except self.RateLimitExceededException:
-                    logging.warning(f"Rate limit exceeded")
+                    logging.warning("Rate limit exceeded")
                     limit = self.get_rate_limit()
-                    reset = limit["reset"].replace(tzinfo=timezone.utc)
-                    seconds = (reset - datetime.now(timezone.utc)).total_seconds() + 10
+                    reset = limit["reset"]
+                    seconds = reset - time.time() + 5
                     logging.warning(f"Reset is in {seconds} seconds.")
                     if seconds > 0.0:
                         logging.info(f"Waiting for {seconds} seconds...")
@@ -121,7 +126,9 @@ class GithubAPI:
     @retry
     def make_request(self, url):
         resp = requests.get(url, headers=self.headers)
+        logging.info(f'Make request to {url}')
         self.raise_by_status(resp.status_code)
+        logging.info('OK')
         return resp.json()
 
     def get_organization(self):
