@@ -3,6 +3,8 @@ import json
 import os
 import logging
 import sys
+import time
+from datetime import timezone, datetime
 from typing import Optional
 
 import requests
@@ -52,29 +54,87 @@ class GithubAPI:
     token = str
     output_dir = str
     organization = str
+    retry = int
 
-    def __init__(self, token, organization, output_dir):
+    class RateLimitExceededException(Exception):
+        def __init__(self, message=None):
+            self.message = message
+            super().__init__(self.message)
+
+    class ClientError(Exception):
+        def __init__(self, message=None):
+            self.message = message
+            super().__init__(self.message)
+
+    class ServerError(Exception):
+        def __init__(self, message=None):
+            self.message = message
+            super().__init__(self.message)
+
+    def raise_by_status(self, status):
+        if status == 403:
+            raise self.RateLimitExceededException()
+        if 400 <= status < 500:
+            raise self.ClientError()
+
+        elif 500 <= status < 600:
+            raise self.ServerError()
+
+    def retry(func):
+        def ret(self, *args, **kwargs):
+            for _ in range(self.retry + 1):
+                try:
+                    return func(self, *args, **kwargs)
+                except self.RateLimitExceededException:
+                    logging.warning(f"Rate limit exceeded")
+                    limit = self.get_rate_limit()
+                    reset = limit["reset"].replace(tzinfo=timezone.utc)
+                    seconds = (reset - datetime.now(timezone.utc)).total_seconds() + 10
+                    logging.warning(f"Reset is in {seconds} seconds.")
+                    if seconds > 0.0:
+                        logging.info(f"Waiting for {seconds} seconds...")
+                        time.sleep(seconds)
+                        logging.info("Done waiting - resume!")
+                except self.ClientError as e:
+                    logging.warning(f"Client error: {e}. Try to retry in 5 seconds")
+                    time.sleep(5)
+                except self.ServerError as e:
+                    logging.warning(f"Server error: {e}. Try to retry in 5 seconds")
+                    time.sleep(5)
+                except requests.exceptions.Timeout as e:
+                    logging.warning(f"Timeout error: {e}. Try to retry in 5 seconds")
+                    time.sleep(5)
+                except requests.exceptions.ConnectionError as e:
+                    logging.warning(f"Connection error: {e}. Try to retry in 5 seconds")
+                    time.sleep(5)
+            raise Exception("Failed too many times")
+
+        return ret
+
+    def __init__(self, token, organization, output_dir, retry=10):
         self.headers = {'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + token}
         self.token = token
         self.organization = organization
         self.output_dir = output_dir
+        self.retry = retry
+
+    @retry
+    def make_request(self, url):
+        resp = requests.get(url, headers=self.headers)
+        self.raise_by_status(resp.status_code)
+        return resp.json()
 
     def get_organization(self):
-        resp = requests.get('https://api.github.com/orgs/' + self.organization, headers=self.headers)
-        resp.raise_for_status()
-        return resp.json()
+        return self.make_request('https://api.github.com/orgs/' + self.organization)
 
     def get_members(self):
-        resp = requests.get('https://api.github.com/orgs/' + self.organization + '/members',
-                            headers=self.headers)
-        resp.raise_for_status()
-        return resp.json()
+        return self.make_request('https://api.github.com/orgs/' + self.organization + '/members')
 
     def get_member_status(self, member_login):
-        resp = requests.get('https://api.github.com/orgs/' + self.organization + '/memberships/' + member_login,
-                            headers=self.headers)
-        resp.raise_for_status()
-        return resp.json()
+        return self.make_request('https://api.github.com/orgs/' + self.organization + '/memberships/' + member_login)
+
+    def get_rate_limit(self):
+        return self.make_request('https://api.github.com/rate_limit')["resources"]["core"]
 
 
 def parse_args(args=None) -> argparse.Namespace:
