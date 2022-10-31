@@ -57,7 +57,8 @@ class GithubAPI:
     token = str
     output_dir = str
     organization = str
-    retry = int
+    retry_count = int
+    retry_seconds = int
 
     class RateLimitExceededException(Exception):
         def __init__(self, message=None):
@@ -78,7 +79,10 @@ class GithubAPI:
         if status == 403:
             logging.info('Status is 403 - Rate limit exceeded exception')
             raise self.RateLimitExceededException()
-        if 400 <= status < 500:
+        elif status == 404:
+            logging.info(f'Status is {status} - Client error: Not found')
+            raise self.ClientError()
+        elif 400 <= status < 500:
             logging.info(f'Status is {status} - Client error')
             raise self.ClientError()
         elif 500 <= status < 600:
@@ -87,41 +91,42 @@ class GithubAPI:
 
     def retry(func):
         def ret(self, *args, **kwargs):
-            for _ in range(self.retry + 1):
+            for _ in range(self.retry_count + 1):
                 try:
                     return func(self, *args, **kwargs)
                 except self.RateLimitExceededException:
                     logging.warning("Rate limit exceeded")
                     limit = self.get_rate_limit()
                     reset = limit["reset"]
-                    seconds = reset - time.time() + 5
+                    seconds = reset - time.time() + self.retry_seconds
                     logging.warning(f"Reset is in {seconds} seconds.")
-                    if seconds > 0.0:
+                    if seconds > 0:
                         logging.info(f"Waiting for {seconds} seconds...")
                         time.sleep(seconds)
                         logging.info("Done waiting - resume!")
                 except self.ClientError as e:
                     logging.warning(f"Client error: {e}. Try to retry in 5 seconds")
-                    time.sleep(5)
+                    time.sleep(self.retry_seconds)
                 except self.ServerError as e:
                     logging.warning(f"Server error: {e}. Try to retry in 5 seconds")
-                    time.sleep(5)
+                    time.sleep(self.retry_seconds)
                 except requests.exceptions.Timeout as e:
                     logging.warning(f"Timeout error: {e}. Try to retry in 5 seconds")
-                    time.sleep(5)
+                    time.sleep(self.retry_seconds)
                 except requests.exceptions.ConnectionError as e:
                     logging.warning(f"Connection error: {e}. Try to retry in 5 seconds")
-                    time.sleep(5)
-            raise Exception("Failed too many times")
+                    time.sleep(self.retry_seconds)
+            raise Exception(f"Failed for {self.retry_count + 1} times")
 
         return ret
 
-    def __init__(self, token, organization, output_dir, retry=10):
+    def __init__(self, token, organization, output_dir, retry_count=10, retry_seconds=1):
         self.headers = {'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + token}
         self.token = token
         self.organization = organization
         self.output_dir = output_dir
-        self.retry = retry
+        self.retry_count = retry_count
+        self.retry_seconds = retry_seconds
 
     @retry
     def make_request(self, url):

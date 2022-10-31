@@ -7,7 +7,7 @@ import pytest
 
 
 class TestGithubApi:
-    gh = GithubAPI("test_token", "test", ".", 1)
+    gh = GithubAPI("test_token", "test", ".", 1, 1)
 
     def test_make_request(self):
         with requests_mock.Mocker() as m:
