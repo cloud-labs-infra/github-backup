@@ -1,7 +1,11 @@
 import argparse
+import json
 import os
+import tempfile
 
-from backup.main import parse_args, Backup
+import requests_mock
+
+from backup.main import parse_args, Backup, GithubAPI
 import pytest
 
 
@@ -29,6 +33,66 @@ class TestArgs:
 
 
 class TestBackup:
+    temp_dir = tempfile.TemporaryDirectory()
+    backup = Backup('token', 'org', temp_dir.name, None)
+    gh = GithubAPI("token", "org", temp_dir.name)
+    users = [
+        {
+            "login": "test1",
+            "url": "https://api.github.com/users/test1",
+            "html_url": "https://github.com/test1",
+        },
+        {
+            "login": "test2",
+            "url": "https://api.github.com/users/test2",
+            "html_url": "https://github.com/test2",
+        }
+    ]
+
+    def test_backup_members(self):
+        with requests_mock.Mocker() as m:
+            m.get(url='https://api.github.com/orgs/org/members',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': self.users, 'status_code': 200}])
+            m.get(url='https://api.github.com/orgs/org/memberships/test1',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': {
+                      "url": "https://api.github.com/orgs/org/memberships/test1",
+                      "state": "active",
+                      "role": "admin"
+                  }, 'status_code': 200}])
+            m.get(url='https://api.github.com/orgs/org/memberships/test2',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': {
+                      "url": "https://api.github.com/orgs/org/memberships/test1",
+                      "state": "active",
+                      "role": "member"
+                  }, 'status_code': 200}])
+            self.backup.backup_members(self.gh)
+        assert os.path.isfile(self.backup.output_dir + "/members/" + "test1.json")
+        assert os.path.isfile(self.backup.output_dir + "/members/" + "test2.json")
+        test1_expected = {
+            "login": "test1",
+            "url": "https://api.github.com/users/test1",
+            "html_url": "https://github.com/test1",
+            "role": "admin",
+            "state": "active"
+        }
+        test2_expected = {
+            "login": "test2",
+            "url": "https://api.github.com/users/test2",
+            "html_url": "https://github.com/test2",
+            "role": "member",
+            "state": "active"
+        }
+        test1 = json.load(open(self.backup.output_dir + "/members/" + "test1.json"))
+        test2 = json.load(open(self.backup.output_dir + "/members/" + "test2.json"))
+        assert test1 == test1_expected
+        assert test2 == test2_expected
+
     def test_bad_dir(self):
         assert not os.path.isdir('tmp')
         Backup('token', 'tmp', 'organization', None)
