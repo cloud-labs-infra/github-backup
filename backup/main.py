@@ -20,13 +20,14 @@ class Backup:
     organization = str
     repositories = Optional[list]
 
-    def __init__(self, token, organization, output_dir, repositories):
+    def __init__(self, token, output_dir, organization, repositories):
         self.token = token
         self.organization = organization
         self.output_dir = output_dir
         self.repositories = repositories
         if not os.path.isdir(self.output_dir):
-            raise AttributeError('Output directory does not exist')
+            logging.warning('Output directory does not exist. It will be created')
+            os.mkdir(self.output_dir)
 
     def backup_members(self, api):
         members_dir = self.output_dir + "/members"

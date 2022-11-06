@@ -92,3 +92,9 @@ class TestBackup:
         test2 = json.load(open(self.backup.output_dir + "/members/" + "test2.json"))
         assert test1 == test1_expected
         assert test2 == test2_expected
+
+    def test_bad_dir(self):
+        assert not os.path.isdir('tmp')
+        Backup('token', 'tmp', 'organization', None)
+        assert os.path.isdir('tmp')
+        os.rmdir('tmp')
