@@ -1,0 +1,9 @@
+{
+    "title": "Backup repository (only main branch)",
+    "description": "Backup repository with only main (master) branch. \r\nFor repository save the clone in folder `{repository_name}/repository`",
+    "creation_date": "2022-10-18T13:08:34Z",
+    "creator_login": "Karina5005",
+    "status": "open",
+    "assignee_login": "Karina5005",
+    "comments": []
+}

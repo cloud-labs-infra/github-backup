@@ -1,0 +1,9 @@
+{
+    "title": "One node secure deploy",
+    "description": "The task is to implement ansible role that deploys a single elasticsearch node with basic security settings as described here: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/configuring-stack-security.html ?blade=kibanasecuritymessage\r\n\r\nTo do this, it is proposed to put everything related to the deployment of elasticsearch in a separate role from existing playbook.\r\n\r\nIt is also necessary to add role testing using ansible molecule.",
+    "creation_date": "2022-11-06T20:45:58Z",
+    "creator_login": "capitanFlint129",
+    "status": "open",
+    "assignee_login": null,
+    "comments": []
+}

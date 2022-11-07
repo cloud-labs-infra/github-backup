@@ -1,0 +1,15 @@
+{
+    "title": "Backup of members",
+    "description": "Backup information about members of organization with theirs roles.\r\nShould be save in dir `people` in `{login}.json` file with format:\r\n```\r\n{\r\n    \"login\": \"example\",\r\n    \"url\": \"https://api.github.com/users/example\",\r\n    \"html_url\": \"https://github.com/example\",\r\n    \"role\": \"member\",\r\n    \"state\": \"active\",\r\n}\r\n```",
+    "creation_date": "2022-10-18T13:00:57Z",
+    "creator_login": "Karina5005",
+    "status": "closed",
+    "assignee_login": "Karina5005",
+    "comments": [
+        {
+            "comment": "Keep in mind please that members restoring will produce email traffic to these members. Possible we should add argument like `--restore-members` (or any naming you want) to disable this action by default (`store_true` [option in argparse lib](https://docs.python.org/3/library/argparse.html#action)) ",
+            "creation_date": "2022-10-24T10:05:33Z",
+            "creator_login": "bissquit"
+        }
+    ]
+}

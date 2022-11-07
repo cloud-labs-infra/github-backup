@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import logging
+import subprocess
 import sys
 import time
 from typing import Optional
@@ -20,7 +21,7 @@ class Backup:
     organization = str
     repositories = Optional[list]
 
-    def __init__(self, token, output_dir, organization, repositories):
+    def __init__(self, token, organization, output_dir, repositories):
         self.token = token
         self.organization = organization
         self.output_dir = output_dir
@@ -37,6 +38,46 @@ class Backup:
         logging.debug(f'Got members {org_members}')
         self.__save_members(api, org_members, members_dir)
 
+    def backup_repositories(self, api):
+        if self.repositories is None:
+            self.repositories = self.__get_repositories(api)
+        repo_dir = self.output_dir + "/repositories"
+        os.makedirs(repo_dir, exist_ok=True)
+        logging.debug(f'Repositories dir is {repo_dir}')
+        self.__save_repositories(self.repositories, repo_dir, api)
+
+    def backup_issues(self, api):
+        repo_dir = self.output_dir + "/repositories"
+        repos = list(os.walk(repo_dir))[0][1]
+        for repo in repos:
+            issues = api.get_issues(repo)
+            os.makedirs(repo_dir + '/' + repo + '/issues', exist_ok=True)
+            self.__save_issues(api, issues, repo_dir + '/' + repo + '/issues', repo)
+
+    def __get_repositories(self, api):
+        return [repo['name'] for repo in api.get_repositories()]
+
+    def __save_repositories(self, repositories, dir, api):
+        for repository in repositories:
+            if os.path.isdir(dir + '/' + repository):
+                logging.info(f'Repositories dir {dir}/{repository} exists. Will update repository')
+            else:
+                logging.info(f'Repositories dir {dir}/{repository} does not exist. Will clone repository')
+                repo_content_path = f'{dir}/{repository}/repository'
+                os.makedirs(repo_content_path, exist_ok=True)
+                os.chdir(repo_content_path)
+                repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
+                subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.STDOUT)
+            subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            self.__save_main_branch(repository, dir, api)
+
+    def __save_main_branch(self, repository, dir, api):
+        branch_name = api.get_main_branch(repository)['default_branch']
+        branch_name_path = f'{dir}/{repository}/main_branch.txt'
+        with open(branch_name_path, "w+") as f:
+            f.write(branch_name)
+
     def __save_members(self, api, members, dir):
         for member in members:
             status = api.get_member_status(member['login'])
@@ -51,6 +92,28 @@ class Backup:
             with open(f"{dir}/{member['login']}.json", "w+") as member_file:
                 logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
+
+    def __save_issues(self, api, issues, dir, repo):
+        for issue in issues:
+            if 'pull' in issue['html_url']:
+                continue
+            comments = [
+                {"comment": comment['body'],
+                 "creation_date": comment['created_at'],
+                 "creator_login": comment['user']['login']}
+                for comment in api.get_comments_for_issue(repo, issue['number'])]
+            backup_issue = {
+                "title": issue['title'],
+                "description": issue['body'],
+                "creation_date": issue['created_at'],
+                "creator_login": issue['user']['login'],
+                "status": issue['state'],
+                "assignee_login": issue['assignee']['login'] if issue['assignee'] else None,
+                "comments": comments
+            }
+            with open(f"{dir}/{issue['number']}.json", "w+") as issue_file:
+                logging.debug(f'Save to {dir}/{issue["number"]}.json issue: {backup_issue}')
+                json.dump(backup_issue, issue_file, indent=4)
 
 
 class GithubAPI:
@@ -130,8 +193,8 @@ class GithubAPI:
         self.retry_seconds = retry_seconds
 
     @retry
-    def make_request(self, url):
-        resp = requests.get(url, headers=self.headers)
+    def make_request(self, url, params=None):
+        resp = requests.get(url, headers=self.headers, params=params)
         logging.info(f'Make request to {url}')
         self.raise_by_status(resp.status_code)
         logging.info('OK')
@@ -145,6 +208,21 @@ class GithubAPI:
 
     def get_member_status(self, member_login):
         return self.make_request('https://api.github.com/orgs/' + self.organization + '/memberships/' + member_login)
+
+    def get_repositories(self):
+        return self.make_request('https://api.github.com/orgs/' + self.organization + '/repos')
+
+    def get_main_branch(self, repo_name):
+        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name)
+
+    def get_issues(self, repo_name):
+        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name + '/issues',
+                                 {'state': 'all'})
+
+    def get_comments_for_issue(self, repo_name, issue_number):
+        return self.make_request(
+            'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/issues/' + str(
+                issue_number) + '/comments')
 
     def get_rate_limit(self):
         return self.make_request('https://api.github.com/rate_limit')["resources"]["core"]
@@ -171,7 +249,7 @@ def parse_args(args=None) -> argparse.Namespace:
     parser.add_argument('-r',
                         '--repository',
                         nargs='+',
-                        default='',
+                        default=None,
                         dest='repository',
                         help='name of repositories to limit backup')
     parsed = parser.parse_args(args)
@@ -190,3 +268,5 @@ if __name__ == "__main__":
         logging.error(e)
     gh = GithubAPI(backup.token, backup.organization, backup.output_dir)
     backup.backup_members(gh)
+    backup.backup_repositories(gh)
+    backup.backup_issues(gh)

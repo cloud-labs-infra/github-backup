@@ -1,0 +1,9 @@
+{
+    "title": "Backup issues",
+    "description": "Backup information about issues in repository.\r\nShould be save in dir issues in `{issues_id}.json` file with format:\r\n```\r\n{\r\n    \"title\": \"example\",\r\n    \"description\": \"example\",\r\n    \"creation_date\": \"2022-09-06\",\r\n    \"creator_login\": \"creator\",\r\n    \"status\": \"open\",\r\n    \"assignee_login\": \"assignee\"\r\n    \"comments\": \r\n        [\r\n            {\r\n                \"comment\": \"text\",\r\n                \"creation_date\": \"2022-09-09\"\r\n                \"creator_login\": \"creator\"\r\n            }\r\n         ]\r\n}\r\n```\r\n\r\n**Think about assigned labels and assigned milestones in future**",
+    "creation_date": "2022-11-06T19:55:33Z",
+    "creator_login": "Karina5005",
+    "status": "open",
+    "assignee_login": "Karina5005",
+    "comments": []
+}

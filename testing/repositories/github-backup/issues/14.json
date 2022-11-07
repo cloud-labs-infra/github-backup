@@ -1,0 +1,9 @@
+{
+    "title": "Decide what to do with update",
+    "description": "Ways:\r\n1) Just delete prev backup before each new\r\n2) Save different versions\r\n3) Update everything (but what to do with deleted information: mark as deleted or realy delete)",
+    "creation_date": "2022-11-07T09:43:11Z",
+    "creator_login": "Karina5005",
+    "status": "open",
+    "assignee_login": "Karina5005",
+    "comments": []
+}
