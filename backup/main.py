@@ -229,5 +229,4 @@ if __name__ == "__main__":
         logging.error(e)
     gh = GithubAPI(backup.token, backup.organization, backup.output_dir)
     backup.backup_members(gh)
-    backup.backup_repositories(gh)
     backup.backup_issues(gh)
