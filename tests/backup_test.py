@@ -93,6 +93,75 @@ class TestBackup:
         assert test1 == test1_expected
         assert test2 == test2_expected
 
+    def test_backup_issues(self):
+        os.makedirs(self.backup.output_dir + "/repositories/test")
+        with requests_mock.Mocker() as m:
+            m.get(url='https://api.github.com/repos/org/test/issues',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'number': 1,
+                          'title': 'test',
+                          'body': 'test description',
+                          'created_at': '2022-10-18T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'closed',
+                          'assignee': {'login': 'assignee'},
+                          'html_url': 'https://github.com/normal-issue'
+                      },
+                      {
+                          'number': 2,
+                          'title': 'test2',
+                          'body': 'test description',
+                          'created_at': '2022-10-11T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'open',
+                          'assignee': {'login': 'assignee'},
+                          'html_url': 'https://github.com/pull'
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'body': 'comment1',
+                          'created_at': '2022-10-24T10:05:33Z',
+                          'user': {'login': 'login1'},
+                      },
+                      {
+                          'body': 'comment2',
+                          'created_at': '2022-10-25T10:05:33Z',
+                          'user': {'login': 'login2'},
+                      }
+                  ], 'status_code': 200}])
+            self.backup.backup_issues(self.gh)
+        expected = {
+            "title": "test",
+            "description": "test description",
+            "creation_date": "2022-10-18T13:00:57Z",
+            "creator_login": "login",
+            "status": "closed",
+            "assignee_login": "assignee",
+            "comments": [
+                {
+                    "comment": "comment1",
+                    "creation_date": "2022-10-24T10:05:33Z",
+                    "creator_login": "login1"
+                },
+                {
+                    "comment": "comment2",
+                    "creation_date": "2022-10-25T10:05:33Z",
+                    "creator_login": "login2"
+                }
+            ]
+        }
+        assert os.path.isfile(self.backup.output_dir + "/repositories/test/issues/" + "1.json")
+        assert not os.path.isfile(self.backup.output_dir + "/repositories/test/issues/" + "2.json")
+        actual = json.load(open(self.backup.output_dir + "/repositories/test/issues/" + "1.json"))
+        assert actual == expected
+
     def test_bad_dir(self):
         assert not os.path.isdir('tmp')
         Backup('token', 'tmp', 'organization', None)
