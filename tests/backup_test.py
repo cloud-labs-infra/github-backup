@@ -161,9 +161,3 @@ class TestBackup:
         assert not os.path.isfile(self.backup.output_dir + "/repositories/test/issues/" + "2.json")
         actual = json.load(open(self.backup.output_dir + "/repositories/test/issues/" + "1.json"))
         assert actual == expected
-
-    def test_bad_dir(self):
-        assert not os.path.isdir('tmp')
-        Backup('token', 'tmp', 'organization', None)
-        assert os.path.isdir('tmp')
-        os.rmdir('tmp')
