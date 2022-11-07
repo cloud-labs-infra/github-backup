@@ -1,9 +1,0 @@
-{
-    "title": "Elasticsearch settings research",
-    "description": "It is necessary to research and determine which elasticsearch settings need to be added to the role explicitly, and which ones only in extra options. After that, add the important settings to the role explicitly.",
-    "creation_date": "2022-11-07T06:47:24Z",
-    "creator_login": "capitanFlint129",
-    "status": "open",
-    "assignee_login": null,
-    "comments": []
-}

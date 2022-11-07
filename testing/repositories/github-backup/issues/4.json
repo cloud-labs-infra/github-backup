@@ -1,9 +1,0 @@
-{
-    "title": "Connection to GitHub",
-    "description": "Choose the better way for connection to GitHub: \r\n1) Requests library\r\n2) PyGithub library\r\n\r\nImplement the getting of connection",
-    "creation_date": "2022-10-18T12:43:18Z",
-    "creator_login": "Karina5005",
-    "status": "closed",
-    "assignee_login": "Karina5005",
-    "comments": []
-}

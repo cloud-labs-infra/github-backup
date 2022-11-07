@@ -1,7 +1,0 @@
-# pack-refs with: peeled fully-peeled sorted 
-b06e240148214e7a4f38c5e5bcbaa6ddc7937d9e refs/heads/issue-1/continue-creating-env
-d04d4ba258e08a41c839167679f819541c6b378a refs/heads/issue-1/initial-molecule
-cc524d15b7a5a9672a877ab98b235e4f533baec0 refs/heads/main
-d04d4ba258e08a41c839167679f819541c6b378a refs/pull/2/head
-b06e240148214e7a4f38c5e5bcbaa6ddc7937d9e refs/pull/3/head
-976a7c6c439fdee29ac07a8c60b2b7f34ed51388 refs/pull/3/merge

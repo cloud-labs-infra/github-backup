@@ -1,9 +1,0 @@
-{
-    "title": "Multiple nodes secure deploy",
-    "description": "Add the ability to deploy multiple elasticsearch nodes to the role. It is also necessary to ensure the safe interaction of nodes with each other, as described here: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/configuring-stack-security.html ?blade=kibanasecuritymessage\r\n\r\nIt is possible to partially reuse this role when implementing secure interaction: https://github.com/elastic/ansible-elasticsearch",
-    "creation_date": "2022-11-06T20:51:00Z",
-    "creator_login": "capitanFlint129",
-    "status": "open",
-    "assignee_login": null,
-    "comments": []
-}

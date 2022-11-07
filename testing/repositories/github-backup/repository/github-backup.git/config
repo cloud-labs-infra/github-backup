@@ -1,8 +1,0 @@
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = true
-[remote "origin"]
-	url = https://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@github.com/cloud-labs-infra/github-backup.git
-	fetch = +refs/*:refs/*
-	mirror = true
