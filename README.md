@@ -117,7 +117,7 @@ Example:
 Since it is necessary to obtain information about all the contents of the repository,
 including all branches, the contents of the repository are obtained using the command `git clone --mirror`
 
-It can be restored later with the command `git pull --mirror`
+It can be restored later with the command `git push --mirror`
 
 When restoring, there is a problem with the correct definition of the main branch,
 so it is additionally saved to a file `main_branch.txt`
