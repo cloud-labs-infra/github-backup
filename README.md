@@ -39,13 +39,12 @@ CLI Usage is as follows:
       ORGANIZATION_NAME                  github organization
 
     optional arguments:
-      -h, --help            show this help message and exit
-      -t TOKEN, --token TOKEN
-                            personal access
+      -h, --help                         show this help message and exit
+      -t TOKEN, --token TOKEN            personal access
       -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
-                            directory at which to backup the repositories
+                                         directory at which to backup the repositories
       -r REPOSITORIES, --repository REPOSITORIES
-                            list of names of repositories to limit backup to
+                                         list of names of repositories to limit backup to
 
 ## Backup structure
 
