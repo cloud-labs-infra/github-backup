@@ -97,6 +97,9 @@ class GithubAPI:
     def get_member_status(self, member_login):
         return self.make_request('https://api.github.com/orgs/' + self.organization + '/memberships/' + member_login)
 
+    def get_repo(self, repo_name):
+        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name)
+
     def get_issues(self, repo_name):
         return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name + '/issues',
                                  {'state': 'all'})
@@ -122,9 +125,6 @@ class GithubAPI:
 
     def get_repositories(self):
         return self.make_request('https://api.github.com/orgs/' + self.organization + '/repos')
-
-    def get_main_branch(self, repo_name):
-        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name)
 
     def get_rate_limit(self):
         return self.make_request('https://api.github.com/rate_limit')["resources"]["core"]

@@ -4,7 +4,7 @@ import os
 import subprocess
 from typing import Optional
 
-from backup.github import GithubAPI
+from github_backup.github import GithubAPI
 
 
 class Backup:
@@ -27,13 +27,10 @@ class Backup:
     def backup_members(self):
         members_dir = self.output_dir + "/members"
         os.makedirs(members_dir, exist_ok=True)
-        memberships_dir = self.output_dir + "/memberships"
-        os.makedirs(memberships_dir, exist_ok=True)
         logging.debug(f'Member dir is {members_dir}')
-        logging.debug(f'Memberships dir is {memberships_dir}')
         org_members = self.api.get_members()
         logging.debug(f'Got members {org_members}')
-        self.__save_members(org_members, members_dir, memberships_dir)
+        self.__save_members(org_members, members_dir)
 
     def backup_pulls(self):
         repo_dir = self.output_dir + "/repositories"
@@ -54,7 +51,7 @@ class Backup:
     def backup_repositories(self):
         if self.repositories is None:
             self.repositories = self.__get_repositories()
-        repo_dir = self.output_dir + "/repositories"
+        repo_dir = self.output_dir + "/repos"
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f'Repositories dir is {repo_dir}')
         self.__save_repositories(self.repositories, repo_dir)
@@ -64,33 +61,44 @@ class Backup:
 
     def __save_repositories(self, repositories, dir):
         for repository in repositories:
-            if os.path.isdir(dir + '/' + repository):
-                logging.info(f'Repositories dir {dir}/{repository} exists. Will update repository')
-            else:
-                logging.info(f'Repositories dir {dir}/{repository} does not exist. Will clone repository')
-                repo_content_path = f'{dir}/{repository}/repository'
-                os.makedirs(repo_content_path, exist_ok=True)
-                os.chdir(repo_content_path)
-                repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
-                subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.STDOUT)
-            subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            self.__save_main_branch(repository, dir)
+            self.__save_repo_content(repository, dir)
 
-    def __save_main_branch(self, repository, dir):
-        branch_name = self.api.get_main_branch(repository)['default_branch']
-        branch_name_path = f'{dir}/{repository}/main_branch.txt'
-        with open(branch_name_path, "w+") as f:
-            f.write(branch_name)
+            repo = self.api.get_repo(repository)
+            backup_repo = {
+                'id': repo['id'],
+                'name': repo['name'],
+                'private': repo['private'],
+                'fork': repo['fork'],
+                'default_branch': repo['default_branch'],
+                'visibility': repo['visibility']
+            }
+            with open(f'{dir}/{repository}/repo.json', "w+") as repo_file:
+                logging.debug(
+                    f'Save to {dir}/{repository}/repo.json repo: {backup_repo}')
+                json.dump(backup_repo, repo_file, indent=4)
 
-    def __save_members(self, members, member_dir, membership_dir):
+    def __save_repo_content(self, repository, dir):
+        if os.path.isdir(f'{dir}/{repository}/content'):
+            logging.info(f'Repositories dir {dir}/{repository}/content exists. Will update repository')
+        else:
+            logging.info(f'Repositories dir {dir}/{repository}/content does not exist. Will clone repository')
+            repo_content_path = f'{dir}/{repository}/content'
+            os.makedirs(repo_content_path, exist_ok=True)
+            os.chdir(repo_content_path)
+            repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
+            subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.STDOUT)
+        subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+    def __save_members(self, members, member_dir):
         for member in members:
+            os.makedirs(f'{member_dir}/{member["login"]}', exist_ok=True)
             backup_member = {
                 "id": member["id"],
                 "login": member["login"],
                 "type": member["type"]
             }
-            with open(f"{member_dir}/{member['login']}.json", "w+") as member_file:
+            with open(f"{member_dir}/{member['login']}/member.json", "w+") as member_file:
                 logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
 
@@ -100,10 +108,9 @@ class Backup:
                 "state": membership["state"],
                 "role": membership["role"]
             }
-            os.makedirs(f'{membership_dir}/{member["login"]}', exist_ok=True)
-            with open(f'{membership_dir}/{member["login"]}/membership.json', "w+") as membership_file:
+            with open(f'{member_dir}/{member["login"]}/membership.json', "w+") as membership_file:
                 logging.debug(
-                    f'Save to {membership_dir}/{member["login"]}/membership.json membership: {backup_membership}')
+                    f'Save to {member}/{member["login"]}/membership.json membership: {backup_membership}')
                 json.dump(backup_membership, membership_file, indent=4)
 
     def __save_issues(self, issues, dir, repo):

@@ -5,8 +5,10 @@ import tempfile
 
 import requests_mock
 
-from backup.main import parse_args, Backup
 import pytest
+
+from github_backup.backup import Backup
+from github_backup.parse_args import parse_args
 
 
 class TestArgs:
@@ -69,14 +71,14 @@ class TestBackup:
                       "role": "member"
                   }, 'status_code': 200}])
             self.backup.backup_members()
-        assert os.path.isfile(f'{self.backup.output_dir}/members/test1.json')
-        assert os.path.isfile(f'{self.backup.output_dir}/members/test2.json')
-        actual = [json.load(open(f'{self.backup.output_dir}/members/test1.json')),
-                  json.load(open(f'{self.backup.output_dir}/members/test2.json'))]
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test1/member.json')
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test2/member.json')
+        actual = [json.load(open(f'{self.backup.output_dir}/members/test1/member.json')),
+                  json.load(open(f'{self.backup.output_dir}/members/test2/member.json'))]
         assert actual == self.users
 
-        assert os.path.isfile(f'{self.backup.output_dir}/memberships/test1/membership.json')
-        assert os.path.isfile(f'{self.backup.output_dir}/memberships/test2/membership.json')
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test1/membership.json')
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test2/membership.json')
         test1_expected = {
             "role": "admin",
             "state": "active"
@@ -85,8 +87,8 @@ class TestBackup:
             "role": "member",
             "state": "active"
         }
-        test1 = json.load(open(f'{self.backup.output_dir}/memberships/test1/membership.json'))
-        test2 = json.load(open(f'{self.backup.output_dir}/memberships/test2/membership.json'))
+        test1 = json.load(open(f'{self.backup.output_dir}/members/test1/membership.json'))
+        test2 = json.load(open(f'{self.backup.output_dir}/members/test2/membership.json'))
         assert test1 == test1_expected
         assert test2 == test2_expected
 
