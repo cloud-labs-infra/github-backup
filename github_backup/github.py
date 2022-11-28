@@ -118,7 +118,7 @@ class GithubAPI:
             'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/pulls/' + str(
                 pull_number) + '/reviews')
 
-    def get_comments_for_pull(self, repo_name, pull_number, review_id):
+    def get_comments_for_review(self, repo_name, pull_number, review_id):
         return self.make_request(
             'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/pulls/' + str(
                 pull_number) + '/reviews/' + str(review_id) + '/comments')

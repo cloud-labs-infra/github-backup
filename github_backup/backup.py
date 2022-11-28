@@ -33,7 +33,7 @@ class Backup:
         self.__save_members(org_members, members_dir)
 
     def backup_pulls(self):
-        repo_dir = self.output_dir + "/repositories"
+        repo_dir = self.output_dir + "/repos"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
             pulls = self.api.get_pulls(repo)
@@ -131,44 +131,48 @@ class Backup:
         for pull in pulls:
             if 'pull' not in pull['html_url']:
                 continue
-            comments = [
-                {
-                    "comment": comment['body'],
-                    "creation_date": comment['created_at'],
-                    "creator_login": comment['user']['login']
-                } for comment in self.api.get_comments_for_issue(repo, pull['number'])
-            ]
-            review_comments = []
+
+            os.makedirs(f'{dir}/{pull["number"]}', exist_ok=True)
+            os.makedirs(f'{dir}/{pull["number"]}/comments', exist_ok=True)
+            os.makedirs(f'{dir}/{pull["number"]}/reviews', exist_ok=True)
+
+            backup_pull = self.filter_fields(['title', 'body', 'created_at', 'state'], pull)
+            backup_assignee = self.filter_fields(['login'], pull['assignee'])
+            backup_user = self.filter_fields(['login'], pull['user'])
+            backup_head = self.filter_fields(['ref'], pull['head'])
+            backup_base = self.filter_fields(['ref'], pull['base'])
+
+            self.save_json(f'{dir}/{pull["number"]}/pull.json', backup_pull)
+            self.save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
+            self.save_json(f'{dir}/{pull["number"]}/user.json', backup_user)
+            self.save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
+            self.save_json(f'{dir}/{pull["number"]}/body.json', backup_base)
+
+            for comment in self.api.get_comments_for_issue(repo, pull['number']):
+                os.makedirs(f'{dir}/{pull["number"]}/comments/{comment["id"]}', exist_ok=True)
+                backup_comment = self.filter_fields(['id', 'body', 'created_at'], comment)
+                backup_user = self.filter_fields(['login'], comment['user'])
+
+                self.save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
+                self.save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/user.json', backup_user)
+
             for review in self.api.get_reviews(repo, pull['number']):
-                if len(review['body']):
-                    comments.append(
-                        {
-                            "comment": review['body'],
-                            "creation_date": review['submitted_at'],
-                            "creator_login": review['user']['login']
-                        }
-                    )
-                review_comments = review_comments + [
-                    {
-                        "comment": comment['body'],
-                        "creation_date": comment['created_at'],
-                        "creator_login": comment['user']['login'],
-                        "diff": comment['diff_hunk'],
-                        "path": comment['path']
-                    } for comment in self.api.get_comments_for_pull(repo, pull['number'], review['id'])
-                ]
-            backup_pull = {
-                "title": pull['title'],
-                "description": pull['body'],
-                "creation_date": pull['created_at'],
-                "creator_login": pull['user']['login'],
-                "status": pull['state'],
-                "assignee_login": pull['assignee']['login'] if pull['assignee'] else None,
-                "from_branch": pull['head']['ref'],
-                "to_branch": pull['base']['ref'],
-                "comments": comments,
-                "review_comments": review_comments
-            }
-            with open(f"{dir}/{pull['number']}.json", "w+") as pull_file:
-                logging.debug(f'Save to {dir}/{pull["number"]}.json pull: {backup_pull}')
-                json.dump(backup_pull, pull_file, indent=4)
+                os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}', exist_ok=True)
+                backup_review = self.filter_fields(['id', 'body', 'state', 'submitted_at', 'commit_id'], review)
+                backup_user = self.filter_fields(['login'], review['user'])
+
+                self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json', backup_review)
+                self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json', backup_user)
+
+                for comment in self.api.get_comments_for_review(repo, pull['number'], review['id']):
+                    os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}', exist_ok=True)
+                    backup_comment = self.filter_fields(
+                        ['id', 'body', 'created_at', 'diff_hunk', 'path', 'position', 'original_position', 'commit_id',
+                         'original_commit_id'], comment)
+                    backup_user = self.filter_fields(['login'], comment['user'])
+
+                    self.save_json(
+                        f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/comment.json',
+                        backup_comment)
+                    self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
+                                   backup_user)
