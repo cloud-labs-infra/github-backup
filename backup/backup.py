@@ -16,20 +16,24 @@ class Backup:
     def __init__(self, token, organization, output_dir, repositories):
         self.token = token
         self.organization = organization
-        self.output_dir = output_dir
+        self.output_dir = f'{output_dir}/{organization}'
         self.repositories = repositories
-        if not os.path.isdir(self.output_dir):
+        if not os.path.isdir(output_dir):
             logging.warning('Output directory does not exist. It will be created')
-            os.mkdir(self.output_dir)
+            os.mkdir(output_dir)
+        os.mkdir(self.output_dir)
         self.api = GithubAPI(self.token, self.organization, self.output_dir)
 
     def backup_members(self):
         members_dir = self.output_dir + "/members"
         os.makedirs(members_dir, exist_ok=True)
+        memberships_dir = self.output_dir + "/memberships"
+        os.makedirs(memberships_dir, exist_ok=True)
         logging.debug(f'Member dir is {members_dir}')
+        logging.debug(f'Memberships dir is {memberships_dir}')
         org_members = self.api.get_members()
         logging.debug(f'Got members {org_members}')
-        self.__save_members(org_members, members_dir)
+        self.__save_members(org_members, members_dir, memberships_dir)
 
     def backup_pulls(self):
         repo_dir = self.output_dir + "/repositories"
@@ -79,20 +83,28 @@ class Backup:
         with open(branch_name_path, "w+") as f:
             f.write(branch_name)
 
-    def __save_members(self, members, dir):
+    def __save_members(self, members, member_dir, membership_dir):
         for member in members:
-            status = self.api.get_member_status(member['login'])
-            logging.debug(f'Got status for {member["login"]}: {status}')
             backup_member = {
+                "id": member["id"],
                 "login": member["login"],
-                "url": member["url"],
-                "html_url": member["html_url"],
-                "role": status["role"],
-                "state": status["state"]
+                "type": member["type"]
             }
-            with open(f"{dir}/{member['login']}.json", "w+") as member_file:
+            with open(f"{member_dir}/{member['login']}.json", "w+") as member_file:
                 logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
+
+            membership = self.api.get_member_status(member['login'])
+            logging.debug(f'Got membership for {member["login"]}: {membership}')
+            backup_membership = {
+                "state": membership["state"],
+                "role": membership["role"]
+            }
+            os.makedirs(f'{membership_dir}/{member["login"]}', exist_ok=True)
+            with open(f'{membership_dir}/{member["login"]}/membership.json', "w+") as membership_file:
+                logging.debug(
+                    f'Save to {membership_dir}/{member["login"]}/membership.json membership: {backup_membership}')
+                json.dump(backup_membership, membership_file, indent=4)
 
     def __save_issues(self, issues, dir, repo):
         for issue in issues:

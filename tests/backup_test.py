@@ -37,14 +37,14 @@ class TestBackup:
     backup = Backup('token', 'org', temp_dir.name, None)
     users = [
         {
-            "login": "test1",
-            "url": "https://api.github.com/users/test1",
-            "html_url": "https://github.com/test1",
+            'id': 1,
+            'login': 'test1',
+            'type': 'user'
         },
         {
-            "login": "test2",
-            "url": "https://api.github.com/users/test2",
-            "html_url": "https://github.com/test2",
+            'id': 2,
+            'login': 'test2',
+            'type': 'bot'
         }
     ]
 
@@ -58,7 +58,6 @@ class TestBackup:
                   request_headers={'Accept': 'application/vnd.github+json',
                                    'Authorization': 'Bearer token'},
                   response_list=[{'json': {
-                      "url": "https://api.github.com/orgs/org/memberships/test1",
                       "state": "active",
                       "role": "admin"
                   }, 'status_code': 200}])
@@ -66,29 +65,28 @@ class TestBackup:
                   request_headers={'Accept': 'application/vnd.github+json',
                                    'Authorization': 'Bearer token'},
                   response_list=[{'json': {
-                      "url": "https://api.github.com/orgs/org/memberships/test1",
                       "state": "active",
                       "role": "member"
                   }, 'status_code': 200}])
             self.backup.backup_members()
-        assert os.path.isfile(self.backup.output_dir + "/members/" + "test1.json")
-        assert os.path.isfile(self.backup.output_dir + "/members/" + "test2.json")
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test1.json')
+        assert os.path.isfile(f'{self.backup.output_dir}/members/test2.json')
+        actual = [json.load(open(f'{self.backup.output_dir}/members/test1.json')),
+                  json.load(open(f'{self.backup.output_dir}/members/test2.json'))]
+        assert actual == self.users
+
+        assert os.path.isfile(f'{self.backup.output_dir}/memberships/test1/membership.json')
+        assert os.path.isfile(f'{self.backup.output_dir}/memberships/test2/membership.json')
         test1_expected = {
-            "login": "test1",
-            "url": "https://api.github.com/users/test1",
-            "html_url": "https://github.com/test1",
             "role": "admin",
             "state": "active"
         }
         test2_expected = {
-            "login": "test2",
-            "url": "https://api.github.com/users/test2",
-            "html_url": "https://github.com/test2",
             "role": "member",
             "state": "active"
         }
-        test1 = json.load(open(self.backup.output_dir + "/members/" + "test1.json"))
-        test2 = json.load(open(self.backup.output_dir + "/members/" + "test2.json"))
+        test1 = json.load(open(f'{self.backup.output_dir}/memberships/test1/membership.json'))
+        test2 = json.load(open(f'{self.backup.output_dir}/memberships/test2/membership.json'))
         assert test1 == test1_expected
         assert test2 == test2_expected
 

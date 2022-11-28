@@ -2,8 +2,9 @@ import time
 import requests
 import requests_mock
 
-from backup.main import GithubAPI
 import pytest
+
+from backup.github import GithubAPI
 
 
 class TestGithubApi:
