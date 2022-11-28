@@ -5,7 +5,7 @@ import tempfile
 
 import requests_mock
 
-from backup.main import parse_args, Backup, GithubAPI
+from backup.main import parse_args, Backup
 import pytest
 
 
@@ -35,7 +35,6 @@ class TestArgs:
 class TestBackup:
     temp_dir = tempfile.TemporaryDirectory()
     backup = Backup('token', 'org', temp_dir.name, None)
-    gh = GithubAPI("token", "org", temp_dir.name)
     users = [
         {
             "login": "test1",
@@ -71,7 +70,7 @@ class TestBackup:
                       "state": "active",
                       "role": "member"
                   }, 'status_code': 200}])
-            self.backup.backup_members(self.gh)
+            self.backup.backup_members()
         assert os.path.isfile(self.backup.output_dir + "/members/" + "test1.json")
         assert os.path.isfile(self.backup.output_dir + "/members/" + "test2.json")
         test1_expected = {
@@ -136,7 +135,7 @@ class TestBackup:
                           'user': {'login': 'login2'},
                       }
                   ], 'status_code': 200}])
-            self.backup.backup_issues(self.gh)
+            self.backup.backup_issues()
         expected = {
             "title": "test",
             "description": "test description",
@@ -242,7 +241,7 @@ class TestBackup:
                   request_headers={'Accept': 'application/vnd.github+json',
                                    'Authorization': 'Bearer token'},
                   response_list=[{'json': [], 'status_code': 200}])
-            self.backup.backup_pulls(self.gh)
+            self.backup.backup_pulls()
         expected = {
             "title": "test",
             "description": "test description",

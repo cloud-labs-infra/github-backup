@@ -4,6 +4,8 @@ import os
 import subprocess
 from typing import Optional
 
+from backup.github import GithubAPI
+
 
 class Backup:
     token = str
@@ -19,43 +21,44 @@ class Backup:
         if not os.path.isdir(self.output_dir):
             logging.warning('Output directory does not exist. It will be created')
             os.mkdir(self.output_dir)
+        self.api = GithubAPI(self.token, self.organization, self.output_dir)
 
-    def backup_members(self, api):
+    def backup_members(self):
         members_dir = self.output_dir + "/members"
         os.makedirs(members_dir, exist_ok=True)
         logging.debug(f'Member dir is {members_dir}')
-        org_members = api.get_members()
+        org_members = self.api.get_members()
         logging.debug(f'Got members {org_members}')
-        self.__save_members(api, org_members, members_dir)
+        self.__save_members(org_members, members_dir)
 
-    def backup_pulls(self, api):
+    def backup_pulls(self):
         repo_dir = self.output_dir + "/repositories"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
-            pulls = api.get_pulls(repo)
+            pulls = self.api.get_pulls(repo)
             os.makedirs(repo_dir + '/' + repo + '/pulls', exist_ok=True)
-            self.__save_pulls(api, pulls, repo_dir + '/' + repo + '/pulls', repo)
+            self.__save_pulls(pulls, repo_dir + '/' + repo + '/pulls', repo)
 
-    def backup_issues(self, api):
+    def backup_issues(self):
         repo_dir = self.output_dir + "/repositories"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
-            issues = api.get_issues(repo)
+            issues = self.api.get_issues(repo)
             os.makedirs(repo_dir + '/' + repo + '/issues', exist_ok=True)
-            self.__save_issues(api, issues, repo_dir + '/' + repo + '/issues', repo)
+            self.__save_issues(issues, repo_dir + '/' + repo + '/issues', repo)
 
-    def backup_repositories(self, api):
+    def backup_repositories(self):
         if self.repositories is None:
-            self.repositories = self.__get_repositories(api)
+            self.repositories = self.__get_repositories()
         repo_dir = self.output_dir + "/repositories"
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f'Repositories dir is {repo_dir}')
-        self.__save_repositories(self.repositories, repo_dir, api)
+        self.__save_repositories(self.repositories, repo_dir)
 
-    def __get_repositories(self, api):
-        return [repo['name'] for repo in api.get_repositories()]
+    def __get_repositories(self):
+        return [repo['name'] for repo in self.api.get_repositories()]
 
-    def __save_repositories(self, repositories, dir, api):
+    def __save_repositories(self, repositories, dir):
         for repository in repositories:
             if os.path.isdir(dir + '/' + repository):
                 logging.info(f'Repositories dir {dir}/{repository} exists. Will update repository')
@@ -68,17 +71,17 @@ class Backup:
                 subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
                                       stderr=subprocess.STDOUT)
             subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            self.__save_main_branch(repository, dir, api)
+            self.__save_main_branch(repository, dir)
 
-    def __save_main_branch(self, repository, dir, api):
-        branch_name = api.get_main_branch(repository)['default_branch']
+    def __save_main_branch(self, repository, dir):
+        branch_name = self.api.get_main_branch(repository)['default_branch']
         branch_name_path = f'{dir}/{repository}/main_branch.txt'
         with open(branch_name_path, "w+") as f:
             f.write(branch_name)
 
-    def __save_members(self, api, members, dir):
+    def __save_members(self, members, dir):
         for member in members:
-            status = api.get_member_status(member['login'])
+            status = self.api.get_member_status(member['login'])
             logging.debug(f'Got status for {member["login"]}: {status}')
             backup_member = {
                 "login": member["login"],
@@ -91,7 +94,7 @@ class Backup:
                 logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
 
-    def __save_issues(self, api, issues, dir, repo):
+    def __save_issues(self, issues, dir, repo):
         for issue in issues:
             if 'pull' in issue['html_url']:
                 continue
@@ -99,7 +102,7 @@ class Backup:
                 {"comment": comment['body'],
                  "creation_date": comment['created_at'],
                  "creator_login": comment['user']['login']}
-                for comment in api.get_comments_for_issue(repo, issue['number'])]
+                for comment in self.api.get_comments_for_issue(repo, issue['number'])]
             backup_issue = {
                 "title": issue['title'],
                 "description": issue['body'],
@@ -113,7 +116,7 @@ class Backup:
                 logging.debug(f'Save to {dir}/{issue["number"]}.json issue: {backup_issue}')
                 json.dump(backup_issue, issue_file, indent=4)
 
-    def __save_pulls(self, api, pulls, dir, repo):
+    def __save_pulls(self, pulls, dir, repo):
         for pull in pulls:
             if 'pull' not in pull['html_url']:
                 continue
@@ -122,10 +125,10 @@ class Backup:
                     "comment": comment['body'],
                     "creation_date": comment['created_at'],
                     "creator_login": comment['user']['login']
-                } for comment in api.get_comments_for_issue(repo, pull['number'])
+                } for comment in self.api.get_comments_for_issue(repo, pull['number'])
             ]
             review_comments = []
-            for review in api.get_reviews(repo, pull['number']):
+            for review in self.api.get_reviews(repo, pull['number']):
                 if len(review['body']):
                     comments.append(
                         {
@@ -141,7 +144,7 @@ class Backup:
                         "creator_login": comment['user']['login'],
                         "diff": comment['diff_hunk'],
                         "path": comment['path']
-                    } for comment in api.get_comments_for_pull(repo, pull['number'], review['id'])
+                    } for comment in self.api.get_comments_for_pull(repo, pull['number'], review['id'])
                 ]
             backup_pull = {
                 "title": pull['title'],
