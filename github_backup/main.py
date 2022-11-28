@@ -13,7 +13,7 @@ if __name__ == "__main__":
         backup = Backup(parsed_args.token, parsed_args.organization, parsed_args.output_dir, parsed_args.repository)
         backup.backup_members()
         backup.backup_repositories()
-        # backup.backup_issues()
+        backup.backup_issues()
         # backup.backup_pulls()
     except argparse.ArgumentError as e:
         logging.error(e.message)

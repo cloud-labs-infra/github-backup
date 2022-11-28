@@ -21,7 +21,7 @@ class Backup:
         if not os.path.isdir(output_dir):
             logging.warning('Output directory does not exist. It will be created')
             os.mkdir(output_dir)
-        os.mkdir(self.output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
         self.api = GithubAPI(self.token, self.organization, self.output_dir)
 
     def backup_members(self):
@@ -41,12 +41,14 @@ class Backup:
             self.__save_pulls(pulls, repo_dir + '/' + repo + '/pulls', repo)
 
     def backup_issues(self):
-        repo_dir = self.output_dir + "/repositories"
+        repo_dir = self.output_dir + "/repos"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
+            issues_dir = f'{repo_dir}/{repo}/issues'
+            logging.debug(f'Issues dir is {issues_dir}')
             issues = self.api.get_issues(repo)
-            os.makedirs(repo_dir + '/' + repo + '/issues', exist_ok=True)
-            self.__save_issues(issues, repo_dir + '/' + repo + '/issues', repo)
+            os.makedirs(issues_dir, exist_ok=True)
+            self.__save_issues(issues, issues_dir, repo)
 
     def backup_repositories(self):
         if self.repositories is None:
@@ -58,8 +60,14 @@ class Backup:
 
     def filter_fields(self, fields, src):
         return {
-            field: src[field] for field in fields
+            field: src[field] if src else {} for field in fields
         }
+
+    def save_json(self, path, content):
+        with open(path, "w+") as file:
+            logging.debug(
+                f'Save to {file}: {content}')
+            json.dump(content, file, indent=4)
 
     def __get_repositories(self):
         return [repo['name'] for repo in self.api.get_repositories()]
@@ -70,10 +78,7 @@ class Backup:
 
             repo = self.api.get_repo(repository)
             backup_repo = self.filter_fields(['id', 'name', 'private', 'fork', 'default_branch', 'visibility'], repo)
-            with open(f'{dir}/{repository}/repo.json', "w+") as repo_file:
-                logging.debug(
-                    f'Save to {dir}/{repository}/repo.json repo: {backup_repo}')
-                json.dump(backup_repo, repo_file, indent=4)
+            self.save_json(f'{dir}/{repository}/repo.json', backup_repo)
 
     def __save_repo_content(self, repository, dir):
         if os.path.isdir(f'{dir}/{repository}/content'):
@@ -92,39 +97,35 @@ class Backup:
         for member in members:
             os.makedirs(f'{member_dir}/{member["login"]}', exist_ok=True)
             backup_member = self.filter_fields(['id', 'login'], member)
-            with open(f"{member_dir}/{member['login']}/member.json", "w+") as member_file:
-                logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
-                json.dump(backup_member, member_file, indent=4)
-
             membership = self.api.get_member_status(member['login'])
-            logging.debug(f'Got membership for {member["login"]}: {membership}')
             backup_membership = self.filter_fields(['state', 'role'], membership)
-            with open(f'{member_dir}/{member["login"]}/membership.json', "w+") as membership_file:
-                logging.debug(
-                    f'Save to {member}/{member["login"]}/membership.json membership: {backup_membership}')
-                json.dump(backup_membership, membership_file, indent=4)
+
+            self.save_json(f'{member_dir}/{member["login"]}/member.json', backup_member)
+            self.save_json(f'{member_dir}/{member["login"]}/membership.json', backup_membership)
 
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
             if 'pull' in issue['html_url']:
                 continue
-            comments = [
-                {"comment": comment['body'],
-                 "creation_date": comment['created_at'],
-                 "creator_login": comment['user']['login']}
-                for comment in self.api.get_comments_for_issue(repo, issue['number'])]
-            backup_issue = {
-                "title": issue['title'],
-                "description": issue['body'],
-                "creation_date": issue['created_at'],
-                "creator_login": issue['user']['login'],
-                "status": issue['state'],
-                "assignee_login": issue['assignee']['login'] if issue['assignee'] else None,
-                "comments": comments
-            }
-            with open(f"{dir}/{issue['number']}.json", "w+") as issue_file:
-                logging.debug(f'Save to {dir}/{issue["number"]}.json issue: {backup_issue}')
-                json.dump(backup_issue, issue_file, indent=4)
+
+            os.makedirs(f'{dir}/{issue["number"]}', exist_ok=True)
+            os.makedirs(f'{dir}/{issue["number"]}/comments', exist_ok=True)
+
+            backup_issue = self.filter_fields(['title', 'body', 'created_at', 'state'], issue)
+            backup_assignee = self.filter_fields(['login'], issue['assignee'])
+            backup_user = self.filter_fields(['login'], issue['user'])
+
+            self.save_json(f'{dir}/{issue["number"]}/issue.json', backup_issue)
+            self.save_json(f'{dir}/{issue["number"]}/assignee.json', backup_assignee)
+            self.save_json(f'{dir}/{issue["number"]}/user.json', backup_user)
+
+            for comment in self.api.get_comments_for_issue(repo, issue['number']):
+                os.makedirs(f'{dir}/{issue["number"]}/comments/{comment["id"]}', exist_ok=True)
+                backup_comment = self.filter_fields(['id', 'body', 'created_at'], comment)
+                backup_user = self.filter_fields(['login'], comment['user'])
+
+                self.save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
+                self.save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/user.json', backup_user)
 
     def __save_pulls(self, pulls, dir, repo):
         for pull in pulls:
