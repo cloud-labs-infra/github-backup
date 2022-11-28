@@ -74,12 +74,8 @@ class TestBackup:
                       "role": "member"
                   }, 'status_code': 200}])
             self.backup.backup_members()
-        assert os.path.isfile(f'{self.backup.output_dir}/members/test1/member.json')
-        assert os.path.isfile(f'{self.backup.output_dir}/members/test2/member.json')
-        actual = [json.load(open(f'{self.backup.output_dir}/members/test1/member.json')),
-                  json.load(open(f'{self.backup.output_dir}/members/test2/member.json'))]
-        assert actual == self.users
-
+        self.check_json({'id': 1, 'login': 'test1'}, f'{self.backup.output_dir}/members/test1/member.json')
+        self.check_json({'id': 2, 'login': 'test2'}, f'{self.backup.output_dir}/members/test2/member.json')
         self.check_json({"role": "admin", "state": "active"}, f'{self.backup.output_dir}/members/test1/membership.json')
         self.check_json({"role": "member", "state": "active"},
                         f'{self.backup.output_dir}/members/test2/membership.json')
