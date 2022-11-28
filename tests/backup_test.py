@@ -161,3 +161,130 @@ class TestBackup:
         assert not os.path.isfile(self.backup.output_dir + "/repositories/test/issues/" + "2.json")
         actual = json.load(open(self.backup.output_dir + "/repositories/test/issues/" + "1.json"))
         assert actual == expected
+
+    def test_backup_pull(self):
+        os.makedirs(self.backup.output_dir + "/repositories/test", exist_ok=True)
+        with requests_mock.Mocker() as m:
+            m.get(url='https://api.github.com/repos/org/test/pulls',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'number': 1,
+                          'title': 'test',
+                          'body': 'test description',
+                          'created_at': '2022-10-18T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'closed',
+                          'assignee': {'login': 'assignee'},
+                          'head': {'ref': 'test-branch'},
+                          'base': {'ref': 'master'},
+                          'html_url': 'https://github.com/normal-pull'
+                      },
+                      {
+                          'number': 2,
+                          'title': 'test2',
+                          'body': 'test description',
+                          'created_at': '2022-10-11T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'open',
+                          'assignee': {'login': 'assignee'},
+                          'head': {'ref': 'test-branch2'},
+                          'base': {'ref': 'master'},
+                          'html_url': 'https://github.com/issue'
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'body': 'comment1',
+                          'created_at': '2022-10-24T10:05:33Z',
+                          'user': {'login': 'login1'},
+                      },
+                      {
+                          'body': 'comment2',
+                          'created_at': '2022-10-25T10:05:33Z',
+                          'user': {'login': 'login2'},
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'id': 1,
+                          'body': 'comment_review1',
+                          'submitted_at': '2022-10-24T10:05:33Z',
+                          'user': {'login': 'login1'},
+                      },
+                      {
+                          'id': 2,
+                          'body': 'comment_review2',
+                          'submitted_at': '2022-10-25T10:05:33Z',
+                          'user': {'login': 'login2'},
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/1/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'body': 'comment1',
+                          'created_at': '2022-10-25T10:05:33Z',
+                          'user': {'login': 'login2'},
+                          'diff_hunk': 'some diff1',
+                          'path': 'file.txt'
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/2/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [], 'status_code': 200}])
+            self.backup.backup_pulls(self.gh)
+        expected = {
+            "title": "test",
+            "description": "test description",
+            "creation_date": "2022-10-18T13:00:57Z",
+            "creator_login": "login",
+            "status": "closed",
+            "assignee_login": "assignee",
+            "from_branch": "test-branch",
+            "to_branch": "master",
+            "comments": [
+                {
+                    "comment": "comment1",
+                    "creation_date": "2022-10-24T10:05:33Z",
+                    "creator_login": "login1"
+                },
+                {
+                    "comment": "comment2",
+                    "creation_date": "2022-10-25T10:05:33Z",
+                    "creator_login": "login2"
+                },
+                {
+                    "comment": "comment_review1",
+                    "creation_date": "2022-10-24T10:05:33Z",
+                    "creator_login": "login1"
+                },
+                {
+                    "comment": "comment_review2",
+                    "creation_date": "2022-10-25T10:05:33Z",
+                    "creator_login": "login2"
+                }
+            ],
+            "review_comments": [
+                {
+                    'comment': 'comment1',
+                    'creation_date': '2022-10-25T10:05:33Z',
+                    'creator_login': 'login2',
+                    'diff': 'some diff1',
+                    'path': 'file.txt'
+                }
+            ]
+        }
+        assert os.path.isfile(self.backup.output_dir + "/repositories/test/pulls/" + "1.json")
+        assert not os.path.isfile(self.backup.output_dir + "/repositories/test/pulls/" + "2.json")
+        actual = json.load(open(self.backup.output_dir + "/repositories/test/pulls/" + "1.json"))
+        assert actual == expected

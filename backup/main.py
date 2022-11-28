@@ -38,6 +38,14 @@ class Backup:
         logging.debug(f'Got members {org_members}')
         self.__save_members(api, org_members, members_dir)
 
+    def backup_pulls(self, api):
+        repo_dir = self.output_dir + "/repositories"
+        repos = list(os.walk(repo_dir))[0][1]
+        for repo in repos:
+            pulls = api.get_pulls(repo)
+            os.makedirs(repo_dir + '/' + repo + '/pulls', exist_ok=True)
+            self.__save_pulls(api, pulls, repo_dir + '/' + repo + '/pulls', repo)
+
     def backup_issues(self, api):
         repo_dir = self.output_dir + "/repositories"
         repos = list(os.walk(repo_dir))[0][1]
@@ -114,6 +122,52 @@ class Backup:
             with open(f"{dir}/{issue['number']}.json", "w+") as issue_file:
                 logging.debug(f'Save to {dir}/{issue["number"]}.json issue: {backup_issue}')
                 json.dump(backup_issue, issue_file, indent=4)
+
+    def __save_pulls(self, api, pulls, dir, repo):
+        for pull in pulls:
+            if 'pull' not in pull['html_url']:
+                continue
+            comments = [
+                {
+                    "comment": comment['body'],
+                    "creation_date": comment['created_at'],
+                    "creator_login": comment['user']['login']
+                } for comment in api.get_comments_for_issue(repo, pull['number'])
+            ]
+            review_comments = []
+            for review in api.get_reviews(repo, pull['number']):
+                if len(review['body']):
+                    comments.append(
+                        {
+                            "comment": review['body'],
+                            "creation_date": review['submitted_at'],
+                            "creator_login": review['user']['login']
+                        }
+                    )
+                review_comments = review_comments + [
+                    {
+                        "comment": comment['body'],
+                        "creation_date": comment['created_at'],
+                        "creator_login": comment['user']['login'],
+                        "diff": comment['diff_hunk'],
+                        "path": comment['path']
+                    } for comment in api.get_comments_for_pull(repo, pull['number'], review['id'])
+                ]
+            backup_pull = {
+                "title": pull['title'],
+                "description": pull['body'],
+                "creation_date": pull['created_at'],
+                "creator_login": pull['user']['login'],
+                "status": pull['state'],
+                "assignee_login": pull['assignee']['login'] if pull['assignee'] else None,
+                "from_branch": pull['head']['ref'],
+                "to_branch": pull['base']['ref'],
+                "comments": comments,
+                "review_comments": review_comments
+            }
+            with open(f"{dir}/{pull['number']}.json", "w+") as pull_file:
+                logging.debug(f'Save to {dir}/{pull["number"]}.json pull: {backup_pull}')
+                json.dump(backup_pull, pull_file, indent=4)
 
 
 class GithubAPI:
@@ -213,10 +267,24 @@ class GithubAPI:
         return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name + '/issues',
                                  {'state': 'all'})
 
+    def get_pulls(self, repo_name):
+        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name + '/pulls',
+                                 {'state': 'all'})
+
     def get_comments_for_issue(self, repo_name, issue_number):
         return self.make_request(
             'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/issues/' + str(
                 issue_number) + '/comments')
+
+    def get_reviews(self, repo_name, pull_number):
+        return self.make_request(
+            'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/pulls/' + str(
+                pull_number) + '/reviews')
+
+    def get_comments_for_pull(self, repo_name, pull_number, review_id):
+        return self.make_request(
+            'https://api.github.com/repos/' + self.organization + '/' + repo_name + '/pulls/' + str(
+                pull_number) + '/reviews/' + str(review_id) + '/comments')
 
     def get_repositories(self):
         return self.make_request('https://api.github.com/orgs/' + self.organization + '/repos')
@@ -270,3 +338,4 @@ if __name__ == "__main__":
     backup.backup_members(gh)
     backup.backup_repositories(gh)
     backup.backup_issues(gh)
+    backup.backup_pulls(gh)
