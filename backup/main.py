@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import logging
+import subprocess
 import sys
 import time
 from typing import Optional
@@ -20,7 +21,7 @@ class Backup:
     organization = str
     repositories = Optional[list]
 
-    def __init__(self, token, output_dir, organization, repositories):
+    def __init__(self, token, organization, output_dir, repositories):
         self.token = token
         self.organization = organization
         self.output_dir = output_dir
@@ -36,6 +37,38 @@ class Backup:
         org_members = api.get_members()
         logging.debug(f'Got members {org_members}')
         self.__save_members(api, org_members, members_dir)
+
+    def backup_repositories(self, api):
+        if self.repositories is None:
+            self.repositories = self.__get_repositories(api)
+        repo_dir = self.output_dir + "/repositories"
+        os.makedirs(repo_dir, exist_ok=True)
+        logging.debug(f'Repositories dir is {repo_dir}')
+        self.__save_repositories(self.repositories, repo_dir, api)
+
+    def __get_repositories(self, api):
+        return [repo['name'] for repo in api.get_repositories()]
+
+    def __save_repositories(self, repositories, dir, api):
+        for repository in repositories:
+            if os.path.isdir(dir + '/' + repository):
+                logging.info(f'Repositories dir {dir}/{repository} exists. Will update repository')
+            else:
+                logging.info(f'Repositories dir {dir}/{repository} does not exist. Will clone repository')
+                repo_content_path = f'{dir}/{repository}/repository'
+                os.makedirs(repo_content_path, exist_ok=True)
+                os.chdir(repo_content_path)
+                repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
+                subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
+                                      stderr=subprocess.STDOUT)
+            subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            self.__save_main_branch(repository, dir, api)
+
+    def __save_main_branch(self, repository, dir, api):
+        branch_name = api.get_main_branch(repository)['default_branch']
+        branch_name_path = f'{dir}/{repository}/main_branch.txt'
+        with open(branch_name_path, "w+") as f:
+            f.write(branch_name)
 
     def __save_members(self, api, members, dir):
         for member in members:
@@ -146,6 +179,12 @@ class GithubAPI:
     def get_member_status(self, member_login):
         return self.make_request('https://api.github.com/orgs/' + self.organization + '/memberships/' + member_login)
 
+    def get_repositories(self):
+        return self.make_request('https://api.github.com/orgs/' + self.organization + '/repos')
+
+    def get_main_branch(self, repo_name):
+        return self.make_request('https://api.github.com/repos/' + self.organization + '/' + repo_name)
+
     def get_rate_limit(self):
         return self.make_request('https://api.github.com/rate_limit')["resources"]["core"]
 
@@ -171,7 +210,7 @@ def parse_args(args=None) -> argparse.Namespace:
     parser.add_argument('-r',
                         '--repository',
                         nargs='+',
-                        default='',
+                        default=None,
                         dest='repository',
                         help='name of repositories to limit backup')
     parsed = parser.parse_args(args)
@@ -190,3 +229,4 @@ if __name__ == "__main__":
         logging.error(e)
     gh = GithubAPI(backup.token, backup.organization, backup.output_dir)
     backup.backup_members(gh)
+    backup.backup_repositories(gh)
