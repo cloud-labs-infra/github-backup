@@ -146,7 +146,7 @@ class Backup:
             save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
             save_json(f'{dir}/{pull["number"]}/user.json', backup_user)
             save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
-            save_json(f'{dir}/{pull["number"]}/body.json', backup_base)
+            save_json(f'{dir}/{pull["number"]}/base.json', backup_base)
 
             for comment in self.api.get_comments_for_issue(repo, pull['number']):
                 os.makedirs(f'{dir}/{pull["number"]}/comments/{comment["id"]}', exist_ok=True)

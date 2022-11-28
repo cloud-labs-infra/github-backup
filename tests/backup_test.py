@@ -176,7 +176,7 @@ class TestBackup:
         self.check_json({'login': 'login2'}, f'{self.backup.output_dir}/repos/test/issues/1/comments/2/user.json')
 
     def test_backup_pull(self):
-        os.makedirs(self.backup.output_dir + "/repositories/test", exist_ok=True)
+        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             m.get(url='https://api.github.com/repos/org/test/pulls',
                   request_headers={'Accept': 'application/vnd.github+json',
@@ -210,16 +210,90 @@ class TestBackup:
             m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
                   request_headers={'Accept': 'application/vnd.github+json',
                                    'Authorization': 'Bearer token'},
+                  response_list=[{'json': [], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [], 'status_code': 200}])
+            self.backup.backup_pulls()
+        assert not os.path.exists(self.backup.output_dir + '/repos/test/issues/2')
+        self.check_json(
+            {'title': 'test', 'body': 'test description', 'created_at': '2022-10-18T13:00:57Z', 'state': 'closed'},
+            f'{self.backup.output_dir}/repos/test/pulls/1/pull.json')
+        self.check_json({'login': 'login'}, f'{self.backup.output_dir}/repos/test/pulls/1/user.json')
+        self.check_json({'login': 'assignee'}, f'{self.backup.output_dir}/repos/test/pulls/1/assignee.json')
+        self.check_json({'ref': 'test-branch'}, f'{self.backup.output_dir}/repos/test/pulls/1/head.json')
+        self.check_json({'ref': 'master'}, f'{self.backup.output_dir}/repos/test/pulls/1/base.json')
+
+    def test_backup_pull_comments(self):
+        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        with requests_mock.Mocker() as m:
+            m.get(url='https://api.github.com/repos/org/test/pulls',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
                   response_list=[{'json': [
                       {
+                          'number': 1,
+                          'title': 'test',
+                          'body': 'test description',
+                          'created_at': '2022-10-18T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'closed',
+                          'assignee': {'login': 'assignee'},
+                          'head': {'ref': 'test-branch'},
+                          'base': {'ref': 'master'},
+                          'html_url': 'https://github.com/normal-pull'
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'id': 1,
                           'body': 'comment1',
                           'created_at': '2022-10-24T10:05:33Z',
                           'user': {'login': 'login1'},
-                      },
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [], 'status_code': 200}])
+            self.backup.backup_pulls()
+        self.check_json({'id': 1, 'body': 'comment1', 'created_at': '2022-10-24T10:05:33Z'},
+                        f'{self.backup.output_dir}/repos/test/pulls/1/comments/1/comment.json')
+        self.check_json({'login': 'login1'}, f'{self.backup.output_dir}/repos/test/pulls/1/comments/1/user.json')
+
+    def test_backup_pull_review(self):
+        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        with requests_mock.Mocker() as m:
+            m.get(url='https://api.github.com/repos/org/test/pulls',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
                       {
-                          'body': 'comment2',
-                          'created_at': '2022-10-25T10:05:33Z',
-                          'user': {'login': 'login2'},
+                          'number': 1,
+                          'title': 'test',
+                          'body': 'test description',
+                          'created_at': '2022-10-18T13:00:57Z',
+                          'user': {'login': 'login'},
+                          'state': 'closed',
+                          'assignee': {'login': 'assignee'},
+                          'head': {'ref': 'test-branch'},
+                          'base': {'ref': 'master'},
+                          'html_url': 'https://github.com/normal-pull'
+                      }
+                  ], 'status_code': 200}])
+            m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
+                  request_headers={'Accept': 'application/vnd.github+json',
+                                   'Authorization': 'Bearer token'},
+                  response_list=[{'json': [
+                      {
+                          'id': 1,
+                          'body': 'comment1',
+                          'created_at': '2022-10-24T10:05:33Z',
+                          'user': {'login': 'login1'},
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews',
@@ -230,13 +304,9 @@ class TestBackup:
                           'id': 1,
                           'body': 'comment_review1',
                           'submitted_at': '2022-10-24T10:05:33Z',
+                          'commit_id': 2,
                           'user': {'login': 'login1'},
-                      },
-                      {
-                          'id': 2,
-                          'body': 'comment_review2',
-                          'submitted_at': '2022-10-25T10:05:33Z',
-                          'user': {'login': 'login2'},
+                          'state': 'active'
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/1/comments',
@@ -244,11 +314,16 @@ class TestBackup:
                                    'Authorization': 'Bearer token'},
                   response_list=[{'json': [
                       {
+                          'id': 1,
                           'body': 'comment1',
                           'created_at': '2022-10-25T10:05:33Z',
                           'user': {'login': 'login2'},
                           'diff_hunk': 'some diff1',
-                          'path': 'file.txt'
+                          'path': 'file.txt',
+                          'position': 1,
+                          'original_position': 1,
+                          'commit_id': 1,
+                          'original_commit_id': 1
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/2/comments',
@@ -256,48 +331,13 @@ class TestBackup:
                                    'Authorization': 'Bearer token'},
                   response_list=[{'json': [], 'status_code': 200}])
             self.backup.backup_pulls()
-        expected = {
-            "title": "test",
-            "description": "test description",
-            "creation_date": "2022-10-18T13:00:57Z",
-            "creator_login": "login",
-            "status": "closed",
-            "assignee_login": "assignee",
-            "from_branch": "test-branch",
-            "to_branch": "master",
-            "comments": [
-                {
-                    "comment": "comment1",
-                    "creation_date": "2022-10-24T10:05:33Z",
-                    "creator_login": "login1"
-                },
-                {
-                    "comment": "comment2",
-                    "creation_date": "2022-10-25T10:05:33Z",
-                    "creator_login": "login2"
-                },
-                {
-                    "comment": "comment_review1",
-                    "creation_date": "2022-10-24T10:05:33Z",
-                    "creator_login": "login1"
-                },
-                {
-                    "comment": "comment_review2",
-                    "creation_date": "2022-10-25T10:05:33Z",
-                    "creator_login": "login2"
-                }
-            ],
-            "review_comments": [
-                {
-                    'comment': 'comment1',
-                    'creation_date': '2022-10-25T10:05:33Z',
-                    'creator_login': 'login2',
-                    'diff': 'some diff1',
-                    'path': 'file.txt'
-                }
-            ]
-        }
-        assert os.path.isfile(self.backup.output_dir + "/repositories/test/pulls/" + "1.json")
-        assert not os.path.isfile(self.backup.output_dir + "/repositories/test/pulls/" + "2.json")
-        actual = json.load(open(self.backup.output_dir + "/repositories/test/pulls/" + "1.json"))
-        assert actual == expected
+        self.check_json({'id': 1, 'body': 'comment_review1', 'state': 'active', 'submitted_at': '2022-10-24T10:05:33Z',
+                         'commit_id': 2},
+                        f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/review.json')
+        self.check_json({'login': 'login1'}, f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/user.json')
+        self.check_json({'id': 1, 'body': 'comment1', 'created_at': '2022-10-25T10:05:33Z', 'diff_hunk': 'some diff1',
+                         'path': 'file.txt', 'position': 1, 'original_position': 1, 'commit_id': 1,
+                         'original_commit_id': 1},
+                        f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/comment.json')
+        self.check_json({'login': 'login2'},
+                        f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/user.json')
