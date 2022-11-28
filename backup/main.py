@@ -45,6 +45,7 @@ class Backup:
             issues = api.get_issues(repo)
             os.makedirs(repo_dir + '/' + repo + '/issues', exist_ok=True)
             self.__save_issues(api, issues, repo_dir + '/' + repo + '/issues', repo)
+
     def backup_repositories(self, api):
         if self.repositories is None:
             self.repositories = self.__get_repositories(api)
