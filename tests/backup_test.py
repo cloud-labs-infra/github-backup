@@ -41,12 +41,10 @@ class TestBackup:
         {
             'id': 1,
             'login': 'test1',
-            'type': 'user'
         },
         {
             'id': 2,
             'login': 'test2',
-            'type': 'bot'
         }
     ]
 

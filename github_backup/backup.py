@@ -56,6 +56,11 @@ class Backup:
         logging.debug(f'Repositories dir is {repo_dir}')
         self.__save_repositories(self.repositories, repo_dir)
 
+    def filter_fields(self, fields, src):
+        return {
+            field: src[field] for field in fields
+        }
+
     def __get_repositories(self):
         return [repo['name'] for repo in self.api.get_repositories()]
 
@@ -64,14 +69,7 @@ class Backup:
             self.__save_repo_content(repository, dir)
 
             repo = self.api.get_repo(repository)
-            backup_repo = {
-                'id': repo['id'],
-                'name': repo['name'],
-                'private': repo['private'],
-                'fork': repo['fork'],
-                'default_branch': repo['default_branch'],
-                'visibility': repo['visibility']
-            }
+            backup_repo = self.filter_fields(['id', 'name', 'private', 'fork', 'default_branch', 'visibility'], repo)
             with open(f'{dir}/{repository}/repo.json', "w+") as repo_file:
                 logging.debug(
                     f'Save to {dir}/{repository}/repo.json repo: {backup_repo}')
@@ -93,21 +91,14 @@ class Backup:
     def __save_members(self, members, member_dir):
         for member in members:
             os.makedirs(f'{member_dir}/{member["login"]}', exist_ok=True)
-            backup_member = {
-                "id": member["id"],
-                "login": member["login"],
-                "type": member["type"]
-            }
+            backup_member = self.filter_fields(['id', 'login'], member)
             with open(f"{member_dir}/{member['login']}/member.json", "w+") as member_file:
                 logging.debug(f'Save to {dir}/{member["login"]}.json member: {backup_member}')
                 json.dump(backup_member, member_file, indent=4)
 
             membership = self.api.get_member_status(member['login'])
             logging.debug(f'Got membership for {member["login"]}: {membership}')
-            backup_membership = {
-                "state": membership["state"],
-                "role": membership["role"]
-            }
+            backup_membership = self.filter_fields(['state', 'role'], membership)
             with open(f'{member_dir}/{member["login"]}/membership.json', "w+") as membership_file:
                 logging.debug(
                     f'Save to {member}/{member["login"]}/membership.json membership: {backup_membership}')
