@@ -3,8 +3,19 @@ import logging
 import os
 import subprocess
 from typing import Optional
-
 from github_backup.github import GithubAPI
+
+
+def save_json(path, content):
+    with open(path, "w+") as file:
+        logging.debug(f'Save to {file}: {content}')
+        json.dump(content, file, indent=4)
+
+
+def filter_fields(fields, src):
+    return {
+        field: src[field] if src else {} for field in fields
+    }
 
 
 class Backup:
@@ -58,17 +69,6 @@ class Backup:
         logging.debug(f'Repositories dir is {repo_dir}')
         self.__save_repositories(self.repositories, repo_dir)
 
-    def filter_fields(self, fields, src):
-        return {
-            field: src[field] if src else {} for field in fields
-        }
-
-    def save_json(self, path, content):
-        with open(path, "w+") as file:
-            logging.debug(
-                f'Save to {file}: {content}')
-            json.dump(content, file, indent=4)
-
     def __get_repositories(self):
         return [repo['name'] for repo in self.api.get_repositories()]
 
@@ -77,8 +77,8 @@ class Backup:
             self.__save_repo_content(repository, dir)
 
             repo = self.api.get_repo(repository)
-            backup_repo = self.filter_fields(['id', 'name', 'private', 'fork', 'default_branch', 'visibility'], repo)
-            self.save_json(f'{dir}/{repository}/repo.json', backup_repo)
+            backup_repo = filter_fields(['id', 'name', 'private', 'fork', 'default_branch', 'visibility'], repo)
+            save_json(f'{dir}/{repository}/repo.json', backup_repo)
 
     def __save_repo_content(self, repository, dir):
         if os.path.isdir(f'{dir}/{repository}/content'):
@@ -96,12 +96,12 @@ class Backup:
     def __save_members(self, members, member_dir):
         for member in members:
             os.makedirs(f'{member_dir}/{member["login"]}', exist_ok=True)
-            backup_member = self.filter_fields(['id', 'login'], member)
+            backup_member = filter_fields(['id', 'login'], member)
             membership = self.api.get_member_status(member['login'])
-            backup_membership = self.filter_fields(['state', 'role'], membership)
+            backup_membership = filter_fields(['state', 'role'], membership)
 
-            self.save_json(f'{member_dir}/{member["login"]}/member.json', backup_member)
-            self.save_json(f'{member_dir}/{member["login"]}/membership.json', backup_membership)
+            save_json(f'{member_dir}/{member["login"]}/member.json', backup_member)
+            save_json(f'{member_dir}/{member["login"]}/membership.json', backup_membership)
 
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
@@ -111,21 +111,21 @@ class Backup:
             os.makedirs(f'{dir}/{issue["number"]}', exist_ok=True)
             os.makedirs(f'{dir}/{issue["number"]}/comments', exist_ok=True)
 
-            backup_issue = self.filter_fields(['title', 'body', 'created_at', 'state'], issue)
-            backup_assignee = self.filter_fields(['login'], issue['assignee'])
-            backup_user = self.filter_fields(['login'], issue['user'])
+            backup_issue = filter_fields(['title', 'body', 'created_at', 'state'], issue)
+            backup_assignee = filter_fields(['login'], issue['assignee'])
+            backup_user = filter_fields(['login'], issue['user'])
 
-            self.save_json(f'{dir}/{issue["number"]}/issue.json', backup_issue)
-            self.save_json(f'{dir}/{issue["number"]}/assignee.json', backup_assignee)
-            self.save_json(f'{dir}/{issue["number"]}/user.json', backup_user)
+            save_json(f'{dir}/{issue["number"]}/issue.json', backup_issue)
+            save_json(f'{dir}/{issue["number"]}/assignee.json', backup_assignee)
+            save_json(f'{dir}/{issue["number"]}/user.json', backup_user)
 
             for comment in self.api.get_comments_for_issue(repo, issue['number']):
                 os.makedirs(f'{dir}/{issue["number"]}/comments/{comment["id"]}', exist_ok=True)
-                backup_comment = self.filter_fields(['id', 'body', 'created_at'], comment)
-                backup_user = self.filter_fields(['login'], comment['user'])
+                backup_comment = filter_fields(['id', 'body', 'created_at'], comment)
+                backup_user = filter_fields(['login'], comment['user'])
 
-                self.save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
-                self.save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/user.json', backup_user)
+                save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
+                save_json(f'{dir}/{issue["number"]}/comments/{comment["id"]}/user.json', backup_user)
 
     def __save_pulls(self, pulls, dir, repo):
         for pull in pulls:
@@ -136,43 +136,44 @@ class Backup:
             os.makedirs(f'{dir}/{pull["number"]}/comments', exist_ok=True)
             os.makedirs(f'{dir}/{pull["number"]}/reviews', exist_ok=True)
 
-            backup_pull = self.filter_fields(['title', 'body', 'created_at', 'state'], pull)
-            backup_assignee = self.filter_fields(['login'], pull['assignee'])
-            backup_user = self.filter_fields(['login'], pull['user'])
-            backup_head = self.filter_fields(['ref'], pull['head'])
-            backup_base = self.filter_fields(['ref'], pull['base'])
+            backup_pull = filter_fields(['title', 'body', 'created_at', 'state'], pull)
+            backup_assignee = filter_fields(['login'], pull['assignee'])
+            backup_user = filter_fields(['login'], pull['user'])
+            backup_head = filter_fields(['ref'], pull['head'])
+            backup_base = filter_fields(['ref'], pull['base'])
 
-            self.save_json(f'{dir}/{pull["number"]}/pull.json', backup_pull)
-            self.save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
-            self.save_json(f'{dir}/{pull["number"]}/user.json', backup_user)
-            self.save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
-            self.save_json(f'{dir}/{pull["number"]}/body.json', backup_base)
+            save_json(f'{dir}/{pull["number"]}/pull.json', backup_pull)
+            save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
+            save_json(f'{dir}/{pull["number"]}/user.json', backup_user)
+            save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
+            save_json(f'{dir}/{pull["number"]}/body.json', backup_base)
 
             for comment in self.api.get_comments_for_issue(repo, pull['number']):
                 os.makedirs(f'{dir}/{pull["number"]}/comments/{comment["id"]}', exist_ok=True)
-                backup_comment = self.filter_fields(['id', 'body', 'created_at'], comment)
-                backup_user = self.filter_fields(['login'], comment['user'])
+                backup_comment = filter_fields(['id', 'body', 'created_at'], comment)
+                backup_user = filter_fields(['login'], comment['user'])
 
-                self.save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
-                self.save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/user.json', backup_user)
+                save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/comment.json', backup_comment)
+                save_json(f'{dir}/{pull["number"]}/comments/{comment["id"]}/user.json', backup_user)
 
             for review in self.api.get_reviews(repo, pull['number']):
                 os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}', exist_ok=True)
-                backup_review = self.filter_fields(['id', 'body', 'state', 'submitted_at', 'commit_id'], review)
-                backup_user = self.filter_fields(['login'], review['user'])
+                backup_review = filter_fields(['id', 'body', 'state', 'submitted_at', 'commit_id'], review)
+                backup_user = filter_fields(['login'], review['user'])
 
-                self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json', backup_review)
-                self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json', backup_user)
+                save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json', backup_review)
+                save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json', backup_user)
 
                 for comment in self.api.get_comments_for_review(repo, pull['number'], review['id']):
-                    os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}', exist_ok=True)
-                    backup_comment = self.filter_fields(
+                    os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
+                                exist_ok=True)
+                    backup_comment = filter_fields(
                         ['id', 'body', 'created_at', 'diff_hunk', 'path', 'position', 'original_position', 'commit_id',
                          'original_commit_id'], comment)
-                    backup_user = self.filter_fields(['login'], comment['user'])
+                    backup_user = filter_fields(['login'], comment['user'])
 
-                    self.save_json(
+                    save_json(
                         f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/comment.json',
                         backup_comment)
-                    self.save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
-                                   backup_user)
+                    save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
+                              backup_user)
