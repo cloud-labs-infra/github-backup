@@ -1,55 +1,7 @@
-import argparse
-import glob
-import json
-import os
 import logging
-import subprocess
-import sys
 import time
 
 import requests
-
-
-class Parser(argparse.ArgumentParser):
-    def error(self, message):
-        raise argparse.ArgumentError(None, message)
-
-
-class Restore:
-    token = str
-    output_dir = str
-    organization = str
-
-    def __init__(self, token, backup_dir, organization):
-        self.token = token
-        self.organization = organization
-        self.backup_dir = backup_dir
-        if not os.path.isdir(self.backup_dir):
-            logging.warning('Output directory does not exist')
-            os.mkdir(self.backup_dir)
-
-    def restore_members(self, api):
-        members_dir = self.backup_dir + '/members'
-        members_files = glob.glob(f'{members_dir}/*.json')
-        for member_file in members_files:
-            member = json.load(open(member_file))
-            if member['state'] != 'active':
-                continue
-            membership = json.load(open(f'{self.backup_dir}/memberships/{member["login"]}.json'))['role']
-            api.invite_member(member['id'], membership)
-
-    def restore_repositories(self, api):
-        repos_dir = self.backup_dir + '/repos/'
-        repos = os.listdir(repos_dir)
-        for repo in repos:
-            private = json.load(open(f'{repos_dir}/{repo}/repo.json'))['private']
-            api.create_repository(repo, private)
-
-            repo_content = repos_dir + repo + '/content'
-            os.chdir(repo_content)
-            repo_url = f'https://{self.token}@github.com/{self.organization}/{repo}.git'
-            subprocess.check_call(['git', 'push', '--mirror', repo_url], stdout=subprocess.DEVNULL,
-                                  stderr=subprocess.STDOUT)
 
 
 class GithubAPI:
@@ -145,38 +97,33 @@ class GithubAPI:
                                       {"name": repo_name, "description": "",
                                        "homepage": "https://github.com", "private": private})
 
+    def create_issue(self, repo, issue, assignee, user):
+        new_issue = self.make_request_post(
+            'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues',
+            {"title": issue['title'], "body": issue['body']})
+        if issue['state'] == 'closed':
+            self.make_request_post(
+                'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues/' + str(new_issue[
+                    'number']),
+                {"state": "closed"})
+            self.make_request_post(
+                'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues/' + str(new_issue[
+                    'number']) + '/comments',
+                {"body": f"Assignee is {assignee['login']}"})
+        elif assignee["login"] != {}:
+            self.make_request_post(
+                'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues/' + str(new_issue[
+                    'number']),
+                {"assignees": [assignee["login"]]})
 
-def parse_args(args=None) -> argparse.Namespace:
-    parser = Parser(description='Backup a GitHub organization')
-    parser.add_argument('organization',
-                        metavar='ORGANIZATION_NAME',
-                        type=str,
-                        help='github organization name')
-    parser.add_argument('-t',
-                        '--token',
-                        type=str,
-                        default='',
-                        dest='token',
-                        help='personal token')
-    parser.add_argument('-b',
-                        '--backup-directory',
-                        type=str,
-                        default='.',
-                        dest='backup_dir',
-                        help='backup directory')
-    parsed = parser.parse_args(args)
-    return parsed
+        self.make_request_post(
+            'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues/' + str(new_issue[
+                'number']) + '/comments',
+            {"body": f"Issues created by {user['login']} at {issue['created_at']}"})
+        return new_issue
 
-
-if __name__ == '__main__':
-    parsed_args = None
-    backup = None
-    try:
-        parsed_args = parse_args(sys.argv[1:])
-        restore = Restore(parsed_args.token, parsed_args.backup_dir, parsed_args.organization)
-        gh = GithubAPI(restore.token, restore.organization, restore.backup_dir)
-        restore.restore_repositories(gh)
-    except argparse.ArgumentError as e:
-        logging.error(e.message)
-    except AttributeError as e:
-        logging.error(e)
+    def create_issue_comment(self, repo, issue, comment, user):
+        self.make_request_post(
+            'https://api.github.com/repos/' + self.organization + '/' + repo + '/issues/' + str(issue[
+                'number']) + '/comments',
+            {"body": comment["body"] + f"\nComment created by {user['login']} at {comment['created_at']}"})
