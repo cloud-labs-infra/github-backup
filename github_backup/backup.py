@@ -7,7 +7,8 @@ from github_backup.github import GithubAPI
 
 
 def save_json(path, content):
-    with open(path, "w+") as file:
+    mode = 'a' if os.path.exists(path) else 'w'
+    with open(path, mode) as file:
         logging.debug(f'Save to {file}: {content}')
         json.dump(content, file, indent=4)
 
@@ -81,6 +82,7 @@ class Backup:
             save_json(f'{dir}/{repository}/repo.json', backup_repo)
 
     def __save_repo_content(self, repository, dir):
+        cur_dir = os.getcwd()
         if os.path.isdir(f'{dir}/{repository}/content'):
             logging.info(f'Repositories dir {dir}/{repository}/content exists. Will update repository')
         else:
@@ -92,6 +94,7 @@ class Backup:
             subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
                                   stderr=subprocess.STDOUT)
         subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        os.chdir(cur_dir)
 
     def __save_members(self, members, member_dir):
         for member in members:
