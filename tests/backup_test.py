@@ -320,10 +320,11 @@ class TestBackup:
                           'user': {'login': 'login2'},
                           'diff_hunk': 'some diff1',
                           'path': 'file.txt',
-                          'position': 1,
-                          'original_position': 1,
+                          'start_line': 1,
+                          'start_side': 'RIGHT',
+                          'line': 1,
+                          'side': 'RIGHT',
                           'commit_id': 1,
-                          'original_commit_id': 1
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/2/comments',
@@ -336,8 +337,7 @@ class TestBackup:
                         f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/review.json')
         self.check_json({'login': 'login1'}, f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/user.json')
         self.check_json({'id': 1, 'body': 'comment1', 'created_at': '2022-10-25T10:05:33Z', 'diff_hunk': 'some diff1',
-                         'path': 'file.txt', 'position': 1, 'original_position': 1, 'commit_id': 1,
-                         'original_commit_id': 1},
+                         'path': 'file.txt', 'start_line': 1, 'start_side': 'RIGHT', 'line': 1, 'side': 'RIGHT', 'commit_id': 1},
                         f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/comment.json')
         self.check_json({'login': 'login2'},
                         f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/user.json')

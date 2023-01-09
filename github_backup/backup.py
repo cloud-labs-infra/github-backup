@@ -171,8 +171,8 @@ class Backup:
                     os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
                                 exist_ok=True)
                     backup_comment = filter_fields(
-                        ['id', 'body', 'created_at', 'diff_hunk', 'path', 'position', 'original_position', 'commit_id',
-                         'original_commit_id'], comment)
+                        ['id', 'body', 'created_at', 'diff_hunk', 'path', 'commit_id',
+                         'start_line', 'start_side', 'line', 'side'], comment)
                     backup_user = filter_fields(['login'], comment['user'])
 
                     save_json(
