@@ -7,7 +7,7 @@ class Parser(argparse.ArgumentParser):
 
 
 def parse_args(args=None) -> argparse.Namespace:
-    parser = Parser(description='Backup a GitHub organization')
+    parser = Parser(prog='./venv/bin/python github_backup/main.py', description='Backup a GitHub organization')
     parser.add_argument('organization',
                         metavar='ORGANIZATION_NAME',
                         type=str,
