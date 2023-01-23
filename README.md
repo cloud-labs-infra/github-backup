@@ -2,7 +2,7 @@
 
 ## Project description
 
-Application for backing up and restoring information about a GitHub organization
+Application for backing up information about a GitHub organization
 
 ## Installation
 
