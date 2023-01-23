@@ -1,0 +1,7 @@
+{
+    "login": "test1",
+    "url": "https://api.github.com/users/test1",
+    "html_url": "https://github.com/test1",
+    "role": "admin",
+    "state": "active"
+}

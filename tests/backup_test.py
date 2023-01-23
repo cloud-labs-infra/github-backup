@@ -190,9 +190,10 @@ class TestBackup:
                           'user': {'login': 'login'},
                           'state': 'closed',
                           'assignee': {'login': 'assignee'},
-                          'head': {'ref': 'test-branch'},
-                          'base': {'ref': 'master'},
-                          'html_url': 'https://github.com/normal-pull'
+                          'head': {'ref': 'test-branch', 'sha': '22dhjw4456fkeavkaw9jv'},
+                          'base': {'ref': 'master', 'sha': '267ud8ihjw45wdfvas6fk'},
+                          'html_url': 'https://github.com/normal-pull',
+                          'merge_commit_sha': '267ud8ihjw45wdfvas6fk'
                       },
                       {
                           'number': 2,
@@ -202,9 +203,10 @@ class TestBackup:
                           'user': {'login': 'login'},
                           'state': 'open',
                           'assignee': {'login': 'assignee'},
-                          'head': {'ref': 'test-branch2'},
-                          'base': {'ref': 'master'},
-                          'html_url': 'https://github.com/issue'
+                          'head': {'ref': 'test-branch2', 'sha': '22dhjw4we9dfkekaw9jv'},
+                          'base': {'ref': 'master', 'sha': '267ud8ihjw45wdfvas6fk'},
+                          'html_url': 'https://github.com/issue',
+                          'merge_commit_sha': '267ud8ihjwkrvs6fk'
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
@@ -218,12 +220,12 @@ class TestBackup:
             self.backup.backup_pulls()
         assert not os.path.exists(self.backup.output_dir + '/repos/test/issues/2')
         self.check_json(
-            {'title': 'test', 'body': 'test description', 'created_at': '2022-10-18T13:00:57Z', 'state': 'closed'},
+            {'title': 'test', 'body': 'test description', 'created_at': '2022-10-18T13:00:57Z', 'state': 'closed', 'merge_commit_sha': '267ud8ihjw45wdfvas6fk'},
             f'{self.backup.output_dir}/repos/test/pulls/1/pull.json')
         self.check_json({'login': 'login'}, f'{self.backup.output_dir}/repos/test/pulls/1/user.json')
         self.check_json({'login': 'assignee'}, f'{self.backup.output_dir}/repos/test/pulls/1/assignee.json')
-        self.check_json({'ref': 'test-branch'}, f'{self.backup.output_dir}/repos/test/pulls/1/head.json')
-        self.check_json({'ref': 'master'}, f'{self.backup.output_dir}/repos/test/pulls/1/base.json')
+        self.check_json({'ref': 'test-branch', 'sha': '22dhjw4456fkeavkaw9jv'}, f'{self.backup.output_dir}/repos/test/pulls/1/head.json')
+        self.check_json({'ref': 'master', 'sha': '267ud8ihjw45wdfvas6fk'}, f'{self.backup.output_dir}/repos/test/pulls/1/base.json')
 
     def test_backup_pull_comments(self):
         os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
@@ -240,9 +242,10 @@ class TestBackup:
                           'user': {'login': 'login'},
                           'state': 'closed',
                           'assignee': {'login': 'assignee'},
-                          'head': {'ref': 'test-branch'},
-                          'base': {'ref': 'master'},
-                          'html_url': 'https://github.com/normal-pull'
+                          'head': {'ref': 'test-branch', 'sha': '22dhjw4456fkeavkaw9jv'},
+                          'base': {'ref': 'master', 'sha': '267ud8ihjw45wdfvas6fk'},
+                          'html_url': 'https://github.com/normal-pull',
+                          'merge_commit_sha': '267ud8ihjw45wdfvas6fk'
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
@@ -280,9 +283,10 @@ class TestBackup:
                           'user': {'login': 'login'},
                           'state': 'closed',
                           'assignee': {'login': 'assignee'},
-                          'head': {'ref': 'test-branch'},
-                          'base': {'ref': 'master'},
-                          'html_url': 'https://github.com/normal-pull'
+                          'head': {'ref': 'test-branch', 'sha': '22dhjw4456fkeavkaw9jv'},
+                          'base': {'ref': 'master', 'sha': '267ud8ihjw45wdfvas6fk'},
+                          'html_url': 'https://github.com/normal-pull',
+                          'merge_commit_sha': '267ud8ihjw45wdfvas6fk'
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/issues/1/comments',
@@ -323,7 +327,8 @@ class TestBackup:
                           'position': 1,
                           'original_position': 1,
                           'commit_id': 1,
-                          'original_commit_id': 1
+                          'original_commit_id': 1,
+                          'in_reply_to_id': 24621741
                       }
                   ], 'status_code': 200}])
             m.get(url='https://api.github.com/repos/org/test/pulls/1/reviews/2/comments',
@@ -337,7 +342,7 @@ class TestBackup:
         self.check_json({'login': 'login1'}, f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/user.json')
         self.check_json({'id': 1, 'body': 'comment1', 'created_at': '2022-10-25T10:05:33Z', 'diff_hunk': 'some diff1',
                          'path': 'file.txt', 'position': 1, 'original_position': 1, 'commit_id': 1,
-                         'original_commit_id': 1},
+                         'original_commit_id': 1, 'in_reply_to_id': 24621741},
                         f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/comment.json')
         self.check_json({'login': 'login2'},
                         f'{self.backup.output_dir}/repos/test/pulls/1/reviews/1/comments/1/user.json')
