@@ -1,7 +1,15 @@
-env:
-	pip3 install tox
-	pip3 install --upgrade pip
-	pip3 install --no-cache-dir --upgrade -r requirements.txt
+export PYTHONPATH := $(PYTHONPATH):$(PWD)/github_backup
 
-test:
-	tox -v
+env:
+	python3 -m venv venv
+	./venv/bin/pip install tox
+	./venv/bin/pip install --no-cache-dir --upgrade -r requirements.txt
+
+test: env
+	./venv/bin/tox -v
+
+run: env
+	./venv/bin/python
+
+help:
+	./venv/bin/python github_backup/main.py -h
