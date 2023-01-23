@@ -15,7 +15,7 @@ def save_json(path, content):
 
 def filter_fields(fields, src):
     return {
-        field: src[field] if src else {} for field in fields
+        field: src[field] if src and field in src else None for field in fields
     }
 
 
@@ -91,7 +91,7 @@ class Backup:
             os.makedirs(repo_content_path, exist_ok=True)
             os.chdir(repo_content_path)
             repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
-            subprocess.check_call(['git', 'clone', '--mirror', repo_url], stdout=subprocess.DEVNULL,
+            subprocess.check_call(['git', 'clone', '--bare', repo_url], stdout=subprocess.DEVNULL,
                                   stderr=subprocess.STDOUT)
         subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         os.chdir(cur_dir)
@@ -139,11 +139,11 @@ class Backup:
             os.makedirs(f'{dir}/{pull["number"]}/comments', exist_ok=True)
             os.makedirs(f'{dir}/{pull["number"]}/reviews', exist_ok=True)
 
-            backup_pull = filter_fields(['title', 'body', 'created_at', 'state'], pull)
+            backup_pull = filter_fields(['title', 'body', 'created_at', 'state', 'merge_commit_sha'], pull)
             backup_assignee = filter_fields(['login'], pull['assignee'])
             backup_user = filter_fields(['login'], pull['user'])
-            backup_head = filter_fields(['ref'], pull['head'])
-            backup_base = filter_fields(['ref'], pull['base'])
+            backup_head = filter_fields(['ref', 'sha'], pull['head'])
+            backup_base = filter_fields(['ref', 'sha'], pull['base'])
 
             save_json(f'{dir}/{pull["number"]}/pull.json', backup_pull)
             save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
@@ -172,7 +172,7 @@ class Backup:
                                 exist_ok=True)
                     backup_comment = filter_fields(
                         ['id', 'body', 'created_at', 'diff_hunk', 'path', 'position', 'original_position', 'commit_id',
-                         'original_commit_id'], comment)
+                         'original_commit_id', 'in_reply_to_id'], comment)
                     backup_user = filter_fields(['login'], comment['user'])
 
                     save_json(
