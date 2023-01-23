@@ -8,8 +8,5 @@ env:
 test: env
 	./venv/bin/tox -v
 
-run: env
-	./venv/bin/python
-
 help:
 	./venv/bin/python github_backup/main.py -h

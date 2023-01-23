@@ -28,7 +28,7 @@ This command runs all unit tests and calculates coverage
 
 CLI Usage is as follows:
 
-    python3 github_backup/main.py [-h] [-t TOKEN] [-o OUTPUT_DIR]
+    ./venv/bin/python github_backup/main.py [-h] [-t TOKEN] [-o OUTPUT_DIR]
                [-r REPOSITORY [REPOSITORY ...]]
                ORGANIZATION_NAME
 
