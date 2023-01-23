@@ -12,6 +12,7 @@ You can clone this repository and set up the environment directly from the comma
 git clone git@github.com:cloud-labs-infra/github-backup.git
 cd github-backup
 make env
+export PYTHONPATH=$PYTHONPATH:$PWD/github_backup
 ```
 
 ## Testing
