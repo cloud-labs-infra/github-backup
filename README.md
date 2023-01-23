@@ -9,7 +9,7 @@ Application for backing up information about a GitHub organization
 You can clone this repository and set up the environment directly from the command line using the following command:
 
 ```bash
-git clone https://github.com/cloud-labs-infra/github-backup.git
+git clone git@github.com:cloud-labs-infra/github-backup.git
 cd github-backup
 make env
 ```
