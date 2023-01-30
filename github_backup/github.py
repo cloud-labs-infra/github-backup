@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -27,48 +28,47 @@ class GithubAPI:
             self.message = message
             super().__init__(self.message)
 
-    def raise_by_status(self, status):
-        if status == 403:
+    def raise_by_status(self, response):
+        if response.status_code == 403:
             logging.info('Status is 403 - Rate limit exceeded exception')
-            raise self.RateLimitExceededException()
-        elif status == 404:
-            logging.info(f'Status is {status} - Client error: Not found')
-            raise self.ClientError()
-        elif 400 <= status < 500:
-            logging.info(f'Status is {status} - Client error')
-            raise self.ClientError()
-        elif 500 <= status < 600:
-            logging.info(f'Status is {status} - Server error')
-            raise self.ServerError()
+            raise self.RateLimitExceededException(json.loads(response.content)["message"])
+        elif response.status_code == 404:
+            logging.info(f'Status is {response.status_code} - Client error: Not found')
+            raise self.ClientError(json.loads(response.content)["message"])
+        elif 400 <= response.status_code < 500:
+            logging.info(f'Status is {response.status_code} - Client error')
+            raise self.ClientError(json.loads(response.content)["message"])
+        elif 500 <= response.status_code < 600:
+            logging.info(f'Status is {response.status_code} - Server error')
+            raise self.ServerError(json.loads(response.content)["message"])
 
     def retry(func):
         def ret(self, *args, **kwargs):
             for _ in range(self.retry_count + 1):
                 try:
+                    time.sleep(1)
                     return func(self, *args, **kwargs)
                 except self.RateLimitExceededException:
-                    logging.warning("Rate limit exceeded")
+                    logging.warning('Rate limit exceeded')
                     limit = self.get_rate_limit()
-                    reset = limit["reset"]
+                    reset = limit['reset']
                     seconds = reset - time.time() + self.retry_seconds
-                    logging.warning(f"Reset is in {seconds} seconds.")
-                    if seconds > 0:
-                        logging.info(f"Waiting for {seconds} seconds...")
-                        time.sleep(seconds)
-                        logging.info("Done waiting - resume!")
+                    logging.info(f'Waiting for {seconds} seconds...')
+                    time.sleep(seconds)
+                    logging.info('Done waiting - resume!')
                 except self.ClientError as e:
-                    logging.warning(f"Client error: {e}. Try to retry in 5 seconds")
+                    logging.warning(f'Client error: {e}. Try to retry in 5 seconds')
                     time.sleep(self.retry_seconds)
                 except self.ServerError as e:
-                    logging.warning(f"Server error: {e}. Try to retry in 5 seconds")
+                    logging.warning(f'Server error: {e}. Try to retry in 5 seconds')
                     time.sleep(self.retry_seconds)
                 except requests.exceptions.Timeout as e:
-                    logging.warning(f"Timeout error: {e}. Try to retry in 5 seconds")
+                    logging.warning(f'Timeout error: {e}. Try to retry in 5 seconds')
                     time.sleep(self.retry_seconds)
                 except requests.exceptions.ConnectionError as e:
-                    logging.warning(f"Connection error: {e}. Try to retry in 5 seconds")
+                    logging.warning(f'Connection error: {e}. Try to retry in 5 seconds')
                     time.sleep(self.retry_seconds)
-            raise Exception(f"Failed for {self.retry_count + 1} times")
+            raise Exception(f'Failed for {self.retry_count + 1} times')
 
         return ret
 
