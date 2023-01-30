@@ -11,6 +11,7 @@ def save_json(path, content):
     with open(path, mode) as file:
         logging.debug(f'Save to {file}: {content}')
         json.dump(content, file, indent=4)
+    logging.debug(f'Saved {content} to {path}')
 
 
 def filter_fields(fields, src):
@@ -41,7 +42,7 @@ class Backup:
         os.makedirs(members_dir, exist_ok=True)
         logging.debug(f'Member dir is {members_dir}')
         org_members = self.api.get_members()
-        logging.debug(f'Got members {org_members}')
+        logging.debug(f'Got members: {org_members}')
         self.__save_members(org_members, members_dir)
 
     def backup_pulls(self):
@@ -105,6 +106,7 @@ class Backup:
 
             save_json(f'{member_dir}/{member["login"]}/member.json', backup_member)
             save_json(f'{member_dir}/{member["login"]}/membership.json', backup_membership)
+
 
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
