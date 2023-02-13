@@ -2,8 +2,10 @@ import json
 import logging
 import os
 import subprocess
+import sys
 from typing import Optional
-from github_backup.github import GithubAPI
+
+from backup_github.github import GithubAPI
 
 
 def save_json(path, content):
@@ -83,17 +85,28 @@ class Backup:
 
     def __save_repo_content(self, repository, dir):
         cur_dir = os.getcwd()
-        if os.path.isdir(f'{dir}/{repository}/content'):
+        repo_content_path = f'{dir}/{repository}/content'
+        if os.path.isdir(repo_content_path):
             logging.info(f'Repositories dir {dir}/{repository}/content exists. Will update repository')
+            os.chdir(repo_content_path)
         else:
             logging.info(f'Repositories dir {dir}/{repository}/content does not exist. Will clone repository')
-            repo_content_path = f'{dir}/{repository}/content'
             os.makedirs(repo_content_path, exist_ok=True)
             os.chdir(repo_content_path)
             repo_url = f'https://{self.token}@github.com/{self.organization}/{repository}.git'
-            subprocess.check_call(['git', 'clone', '--bare', repo_url], stdout=subprocess.DEVNULL,
-                                  stderr=subprocess.STDOUT)
-        subprocess.check_call(['git', 'fetch', '-p'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            try:
+                subprocess.check_output(['git', 'clone', '--bare', repo_url])
+            except subprocess.CalledProcessError as e:
+                print('exit code: {}'.format(e.returncode))
+                print('stdout: {}'.format(e.output.decode(sys.getfilesystemencoding())))
+                print('stderr: {}'.format(e.stderr.decode(sys.getfilesystemencoding())))
+        os.chdir(f'{repository}.git')
+        try:
+            subprocess.check_output(['git', 'fetch', '-p'])
+        except subprocess.CalledProcessError as e:
+            print('exit code: {}'.format(e.returncode))
+            print('stdout: {}'.format(e.output.decode(sys.getfilesystemencoding())))
+            print('stderr: {}'.format(e.stderr.decode(sys.getfilesystemencoding())))
         os.chdir(cur_dir)
 
     def __save_members(self, members, member_dir):
@@ -180,3 +193,4 @@ class Backup:
                         backup_comment)
                     save_json(f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
                               backup_user)
+

@@ -5,6 +5,7 @@ import time
 import requests
 
 
+
 class GithubAPI:
     headers = dict
     token = str
@@ -84,7 +85,7 @@ class GithubAPI:
     def make_request(self, url, params=None):
         resp = requests.get(url, headers=self.headers, params=params)
         logging.info(f'Make request to {url}')
-        self.raise_by_status(resp.status_code)
+        self.raise_by_status(resp)
         logging.info('OK')
         return resp.json()
 

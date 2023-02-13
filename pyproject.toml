@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "backup-github"
+version = "0.2.1"
+description = ""
+authors = ["Karina5005 <karinaanisimova23062001@gmail.com>"]
+readme = "README.md"
+packages = [{include = "backup_github"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.28.2"
+prometheus_client = "^0.16.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
+black = "^23.1.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+bandit = "^1.7.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+backup-github = "backup_github.main:main"

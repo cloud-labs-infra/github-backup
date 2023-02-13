@@ -2,10 +2,14 @@ import argparse
 import logging
 import sys
 
-from github_backup.backup import Backup
-from github_backup.parse_args import parse_args
 
-if __name__ == "__main__":
+from backup_github.backup import Backup
+from backup_github.parse_args import parse_args
+
+logging.basicConfig(level=logging.NOTSET)
+
+
+def main():
     parsed_args = None
     backup = None
     try:
@@ -19,3 +23,7 @@ if __name__ == "__main__":
         logging.error(e.message)
     except AttributeError as e:
         logging.error(e)
+
+
+if __name__ == "__main__":
+    main()
