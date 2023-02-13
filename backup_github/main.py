@@ -2,7 +2,6 @@ import argparse
 import logging
 import sys
 
-
 from backup_github.backup import Backup
 from backup_github.parse_args import parse_args
 
@@ -14,7 +13,12 @@ def main():
     backup = None
     try:
         parsed_args = parse_args(sys.argv[1:])
-        backup = Backup(parsed_args.token, parsed_args.organization, parsed_args.output_dir, parsed_args.repository)
+        backup = Backup(
+            parsed_args.token,
+            parsed_args.organization,
+            parsed_args.output_dir,
+            parsed_args.repository,
+        )
         backup.backup_members()
         backup.backup_repositories()
         backup.backup_issues()
