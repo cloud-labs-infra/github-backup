@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "backup-github"
-version = "0.1.3"
+version = "1.0.0"
 description = ""
 authors = ["Karina5005 <karinaanisimova23062001@gmail.com>"]
 readme = "README.md"
