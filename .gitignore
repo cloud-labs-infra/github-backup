@@ -4,3 +4,4 @@ venv/
 .idea/
 .coverage
 testing/
+*.xml

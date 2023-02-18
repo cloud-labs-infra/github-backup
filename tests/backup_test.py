@@ -5,8 +5,9 @@ import tempfile
 
 import pytest
 import requests_mock
-from github_backup.backup import Backup
-from github_backup.parse_args import parse_args
+
+from backup_github.backup import Backup
+from backup_github.parse_args import parse_args
 
 
 class TestArgs:

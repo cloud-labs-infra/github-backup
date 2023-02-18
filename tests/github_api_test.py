@@ -3,7 +3,8 @@ import time
 import pytest
 import requests
 import requests_mock
-from github_backup.github import GithubAPI
+
+from backup_github.github import GithubAPI
 
 
 class TestGithubApi:
@@ -63,7 +64,10 @@ class TestGithubApi:
                     "Authorization": "Bearer " + token,
                 },
                 response_list=[
-                    {"json": {}, "status_code": 404},
+                    {
+                        "status_code": 404,
+                        "content": bytes('{"message": "failed"}', "utf-8"),
+                    },
                     {"json": {}, "status_code": 200},
                 ],
             )
@@ -81,7 +85,10 @@ class TestGithubApi:
                     "Authorization": "Bearer " + token,
                 },
                 response_list=[
-                    {"json": {}, "status_code": 403},
+                    {
+                        "status_code": 403,
+                        "content": bytes('{"message": "failed"}', "utf-8"),
+                    },
                     {"json": {}, "status_code": 200},
                 ],
             )
@@ -120,7 +127,12 @@ class TestGithubApi:
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer " + token,
                 },
-                response_list=[{"json": {}, "status_code": 403}],
+                response_list=[
+                    {
+                        "content": bytes('{"message": "failed"}', "utf-8"),
+                        "status_code": 403,
+                    }
+                ],
             )
             m.get(
                 url="https://api.github.com/rate_limit",

@@ -54,7 +54,9 @@ class GithubAPI:
                     logging.warning("Rate limit exceeded")
                     limit = self.get_rate_limit()
                     reset = limit["reset"]
-                    seconds = reset - time.time() + self.retry_seconds
+                    seconds = max(
+                        self.retry_seconds, reset - time.time() + self.retry_seconds
+                    )
                     logging.info(f"Waiting for {seconds} seconds...")
                     time.sleep(seconds)
                     logging.info("Done waiting - resume!")
