@@ -90,12 +90,19 @@ class GithubAPI:
         self.retry_seconds = retry_seconds
 
     @retry
-    def make_request(self, url, params=None):
-        resp = requests.get(url, headers=self.headers, params=params)
-        logging.info(f"Make request to {url}")
-        self.raise_by_status(resp)
-        logging.info("OK")
-        return resp.json()
+    def make_request(self, url, params={}):
+        res = []
+        params["page"] = 1
+        while True:
+            resp = requests.get(url, headers=self.headers, params=params)
+            logging.info(f"Make request to {url}")
+            self.raise_by_status(resp)
+            logging.info("OK")
+            if not isinstance(resp.json(), list) or len(resp.json()) == 0:
+                break
+            res += resp.json()
+            params["page"] = params["page"] + 1
+        return res
 
     def get_organization(self):
         return self.make_request("https://api.github.com/orgs/" + self.organization)
