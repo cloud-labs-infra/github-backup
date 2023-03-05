@@ -85,7 +85,7 @@ class TestGithubApi:
                 ],
             )
             assert (
-                    self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
             )
 
     def test_make_request_rate_limit_exceeded_ok(self):
@@ -128,7 +128,7 @@ class TestGithubApi:
                 ],
             )
             assert (
-                    self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
             )
 
     def test_make_request_rate_limit_exceeded_fail(self):
@@ -171,8 +171,8 @@ class TestGithubApi:
             )
             with pytest.raises(Exception):
                 assert (
-                        self.gh.make_request("https://api.github.com/orgs/test/members")
-                        == {}
+                    self.gh.make_request("https://api.github.com/orgs/test/members")
+                    == {}
                 )
 
     def test_make_request_timeout(self):
