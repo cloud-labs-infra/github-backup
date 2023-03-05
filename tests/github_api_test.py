@@ -13,7 +13,7 @@ class TestGithubApi:
     def test_make_request(self):
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/orgs/test/members",
+                url="https://api.github.com/orgs/test/members?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer test_token",
@@ -27,6 +27,19 @@ class TestGithubApi:
                                 "html_url": "https://github.com/octocat",
                             }
                         ],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/orgs/test/members?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer test_token",
+                },
+                response_list=[
+                    {
+                        "json": [],
                         "status_code": 200,
                     }
                 ],
@@ -72,7 +85,7 @@ class TestGithubApi:
                 ],
             )
             assert (
-                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                    self.gh.make_request("https://api.github.com/orgs/test/members") == {}
             )
 
     def test_make_request_rate_limit_exceeded_ok(self):
@@ -115,7 +128,7 @@ class TestGithubApi:
                 ],
             )
             assert (
-                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                    self.gh.make_request("https://api.github.com/orgs/test/members") == {}
             )
 
     def test_make_request_rate_limit_exceeded_fail(self):
@@ -158,8 +171,8 @@ class TestGithubApi:
             )
             with pytest.raises(Exception):
                 assert (
-                    self.gh.make_request("https://api.github.com/orgs/test/members")
-                    == {}
+                        self.gh.make_request("https://api.github.com/orgs/test/members")
+                        == {}
                 )
 
     def test_make_request_timeout(self):

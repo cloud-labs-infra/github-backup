@@ -98,9 +98,12 @@ class GithubAPI:
             logging.info(f"Make request to {url}")
             self.raise_by_status(resp)
             logging.info("OK")
-            if not isinstance(resp.json(), list) or len(resp.json()) == 0:
+            if isinstance(resp.json(), list):
+                res += resp.json()
+            else:
+                return resp.json()
+            if len(resp.json()) == 0:
                 break
-            res += resp.json()
             params["page"] = params["page"] + 1
         return res
 
