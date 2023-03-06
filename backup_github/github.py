@@ -93,6 +93,7 @@ class GithubAPI:
     def make_request(self, url, params={}):
         res = []
         params["page"] = 1
+        params["per_page"] = 100
         while True:
             resp = requests.get(url, headers=self.headers, params=params)
             logging.info(f"Make request to {url}")
