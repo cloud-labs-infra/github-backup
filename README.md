@@ -11,8 +11,7 @@ You can clone this repository and set up the environment directly from the comma
 ```bash
 git clone git@github.com:cloud-labs-infra/github-backup.git
 cd github-backup
-make env
-export PYTHONPATH=$PYTHONPATH:$PWD/github_backup
+poetry install
 ```
 
 ## Testing
@@ -20,7 +19,7 @@ export PYTHONPATH=$PYTHONPATH:$PWD/github_backup
 You can run the tests using the following command:
 
 ```bash
-make test
+poetry run pytest --cov=./ --cov-report=xml
 ```
 
 This command runs all unit tests and calculates coverage
@@ -29,7 +28,7 @@ This command runs all unit tests and calculates coverage
 
 CLI Usage is as follows:
 
-    ./venv/bin/python github_backup/main.py [-h] [-t TOKEN] [-o OUTPUT_DIR]
+    poetry run backup-github [-h] [-t TOKEN] [-o OUTPUT_DIR]
                [-r REPOSITORY [REPOSITORY ...]]
                ORGANIZATION_NAME
 
@@ -89,10 +88,6 @@ CLI Usage is as follows:
                 │     │     └── user.json
                 │     └── user.json
                 └── repo.json
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
 
 ## Project status
 
