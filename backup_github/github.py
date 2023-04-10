@@ -109,84 +109,54 @@ class GithubAPI:
         return res
 
     def get_organization(self):
-        return self.make_request("https://api.github.com/orgs/" + self.organization)
+        return self.make_request(f"https://api.github.com/orgs/{self.organization}")
 
     def get_members(self):
         return self.make_request(
-            "https://api.github.com/orgs/" + self.organization + "/members"
+            f"https://api.github.com/orgs/{self.organization}/members"
         )
 
     def get_member_status(self, member_login):
         return self.make_request(
-            "https://api.github.com/orgs/"
-            + self.organization
-            + "/memberships/"
-            + member_login
+            f"https://api.github.com/orgs/{self.organization}/memberships/{member_login}"
         )
 
     def get_repo(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/" + self.organization + "/" + repo_name
+            f"https://api.github.com/repos/{self.organization}/{repo_name}"
         )
 
     def get_issues(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/issues",
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/issues",
             {"state": "all"},
         )
 
     def get_pulls(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls",
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls",
             {"state": "all"},
         )
 
     def get_comments_for_issue(self, repo_name, issue_number):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/issues/"
-            + str(issue_number)
-            + "/comments"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/issues/{str(issue_number)}/comments"
         )
 
     def get_reviews(self, repo_name, pull_number):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls/"
-            + str(pull_number)
-            + "/reviews"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls/{str(pull_number)}/reviews"
         )
 
     def get_comments_for_review(self, repo_name, pull_number, review_id):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls/"
-            + str(pull_number)
-            + "/reviews/"
-            + str(review_id)
-            + "/comments"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls/"
+            f"{str(pull_number)}/reviews/{str(review_id)}/comments"
         )
 
     def get_repositories(self):
         return self.make_request(
-            "https://api.github.com/orgs/" + self.organization + "/repos"
+            f"https://api.github.com/orgs/{self.organization}/repos"
         )
 
     def get_rate_limit(self):
