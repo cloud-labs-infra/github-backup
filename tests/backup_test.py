@@ -55,7 +55,7 @@ class TestBackup:
     def test_backup_members(self):
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/orgs/org/members",
+                url="https://api.github.com/orgs/org/members?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -63,7 +63,15 @@ class TestBackup:
                 response_list=[{"json": self.users, "status_code": 200}],
             )
             m.get(
-                url="https://api.github.com/orgs/org/memberships/test1",
+                url="https://api.github.com/orgs/org/members?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[{"json": [], "status_code": 200}],
+            )
+            m.get(
+                url="https://api.github.com/orgs/org/memberships/test1?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -73,7 +81,7 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/orgs/org/memberships/test2",
+                url="https://api.github.com/orgs/org/memberships/test2?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -104,7 +112,7 @@ class TestBackup:
         os.makedirs(self.backup.output_dir + "/repos/test")
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/repos/org/test/issues",
+                url="https://api.github.com/repos/org/test/issues?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -138,7 +146,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/issues/1/comments",
+                url="https://api.github.com/repos/org/test/issues?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -171,7 +192,7 @@ class TestBackup:
         os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/repos/org/test/issues",
+                url="https://api.github.com/repos/org/test/issues?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -205,7 +226,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/issues/1/comments",
+                url="https://api.github.com/repos/org/test/issues?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -226,6 +260,19 @@ class TestBackup:
                                 "user": {"login": "login2"},
                             },
                         ],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
                         "status_code": 200,
                     }
                 ],
@@ -252,7 +299,7 @@ class TestBackup:
         os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/repos/org/test/pulls",
+                url="https://api.github.com/repos/org/test/pulls?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -299,6 +346,19 @@ class TestBackup:
                                 "merge_commit_sha": "267ud8ihjwkrvs6fk",
                             },
                         ],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/pulls?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
                         "status_code": 200,
                     }
                 ],
@@ -351,7 +411,7 @@ class TestBackup:
         os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/repos/org/test/pulls",
+                url="https://api.github.com/repos/org/test/pulls?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -384,7 +444,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/issues/1/comments",
+                url="https://api.github.com/repos/org/test/pulls?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -399,6 +472,19 @@ class TestBackup:
                                 "user": {"login": "login1"},
                             }
                         ],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
                         "status_code": 200,
                     }
                 ],
@@ -425,7 +511,7 @@ class TestBackup:
         os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             m.get(
-                url="https://api.github.com/repos/org/test/pulls",
+                url="https://api.github.com/repos/org/test/pulls?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -458,7 +544,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/issues/1/comments",
+                url="https://api.github.com/repos/org/test/pulls?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -478,7 +577,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/pulls/1/reviews",
+                url="https://api.github.com/repos/org/test/issues/1/comments?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/pulls/1/reviews?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -500,7 +612,20 @@ class TestBackup:
                 ],
             )
             m.get(
-                url="https://api.github.com/repos/org/test/pulls/1/reviews/1/comments",
+                url="https://api.github.com/repos/org/test/pulls/1/reviews?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/pulls/1/reviews/1/comments?page=1",
                 request_headers={
                     "Accept": "application/vnd.github+json",
                     "Authorization": "Bearer token",
@@ -522,6 +647,19 @@ class TestBackup:
                                 "in_reply_to_id": 24621741,
                             }
                         ],
+                        "status_code": 200,
+                    }
+                ],
+            )
+            m.get(
+                url="https://api.github.com/repos/org/test/pulls/1/reviews/1/comments?page=2",
+                request_headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": "Bearer token",
+                },
+                response_list=[
+                    {
+                        "json": [],
                         "status_code": 200,
                     }
                 ],
