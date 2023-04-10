@@ -1,24 +1,12 @@
-import json
 import logging
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Optional
 
 from backup_github.github import GithubAPI
 from backup_github.metrics import git_size
-
-
-def save_json(path, content):
-    mode = "w" if os.path.exists(path) else "w+"
-    with open(path, mode) as file:
-        logging.debug(f"Save to {file}: {content}")
-        json.dump(content, file, indent=4)
-
-
-def filter_fields(fields, src):
-    return {field: src[field] if src and field in src else None for field in fields}
+from backup_github.utils import filter_fields, save_json, subprocess_handle
 
 
 class Backup:
@@ -103,19 +91,11 @@ class Backup:
             repo_url = (
                 f"https://{self.token}@github.com/{self.organization}/{repository}.git"
             )
-            try:
+            subprocess_handle(
                 subprocess.check_output(["git", "clone", "--bare", repo_url])
-            except subprocess.CalledProcessError as e:
-                print("exit code: {}".format(e.returncode))
-                print("stdout: {}".format(e.output.decode(sys.getfilesystemencoding())))
-                print("stderr: {}".format(e.stderr.decode(sys.getfilesystemencoding())))
+            )
         os.chdir(f"{repository}.git")
-        try:
-            subprocess.check_output(["git", "fetch", "-p"])
-        except subprocess.CalledProcessError as e:
-            print("exit code: {}".format(e.returncode))
-            print("stdout: {}".format(e.output.decode(sys.getfilesystemencoding())))
-            print("stderr: {}".format(e.stderr.decode(sys.getfilesystemencoding())))
+        subprocess_handle(subprocess.check_output(["git", "fetch", "-p"]))
         os.chdir(cur_dir)
 
     def __save_members(self, members, member_dir):
@@ -195,54 +175,54 @@ class Backup:
                 self.api.get_comments_for_issue(repo, pull["number"]),
                 f'{dir}/{pull["number"]}',
             )
+            self.__save_pull_reviews(repo, pull, dir)
 
-            for review in self.api.get_reviews(repo, pull["number"]):
+    def __save_pull_reviews(self, repo, pull, dir):
+        for review in self.api.get_reviews(repo, pull["number"]):
+            os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}', exist_ok=True)
+            backup_review = filter_fields(
+                ["id", "body", "state", "submitted_at", "commit_id"], review
+            )
+            backup_user = filter_fields(["login"], review["user"])
+
+            save_json(
+                f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json',
+                backup_review,
+            )
+            save_json(
+                f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json',
+                backup_user,
+            )
+
+            for comment in self.api.get_comments_for_review(
+                repo, pull["number"], review["id"]
+            ):
                 os.makedirs(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}', exist_ok=True
+                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
+                    exist_ok=True,
                 )
-                backup_review = filter_fields(
-                    ["id", "body", "state", "submitted_at", "commit_id"], review
+                backup_comment = filter_fields(
+                    [
+                        "id",
+                        "body",
+                        "created_at",
+                        "diff_hunk",
+                        "path",
+                        "position",
+                        "original_position",
+                        "commit_id",
+                        "original_commit_id",
+                        "in_reply_to_id",
+                    ],
+                    comment,
                 )
-                backup_user = filter_fields(["login"], review["user"])
+                backup_user = filter_fields(["login"], comment["user"])
 
                 save_json(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json',
-                    backup_review,
+                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/comment.json',
+                    backup_comment,
                 )
                 save_json(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json',
+                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
                     backup_user,
                 )
-
-                for comment in self.api.get_comments_for_review(
-                    repo, pull["number"], review["id"]
-                ):
-                    os.makedirs(
-                        f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
-                        exist_ok=True,
-                    )
-                    backup_comment = filter_fields(
-                        [
-                            "id",
-                            "body",
-                            "created_at",
-                            "diff_hunk",
-                            "path",
-                            "position",
-                            "original_position",
-                            "commit_id",
-                            "original_commit_id",
-                            "in_reply_to_id",
-                        ],
-                        comment,
-                    )
-                    backup_user = filter_fields(["login"], comment["user"])
-
-                    save_json(
-                        f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/comment.json',
-                        backup_comment,
-                    )
-                    save_json(
-                        f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
-                        backup_user,
-                    )
