@@ -130,6 +130,21 @@ class Backup:
                 f'{member_dir}/{member["login"]}/membership.json', backup_membership
             )
 
+    def __save_comments(self, comments, outter_dir):
+        for comment in comments:
+            os.makedirs(f'{outter_dir}/comments/{comment["id"]}', exist_ok=True)
+            backup_comment = filter_fields(["id", "body", "created_at"], comment)
+            backup_user = filter_fields(["login"], comment["user"])
+
+            save_json(
+                f'{outter_dir}/comments/{comment["id"]}/comment.json',
+                backup_comment,
+            )
+            save_json(
+                f'{outter_dir}/comments/{comment["id"]}/user.json',
+                backup_user,
+            )
+
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
             if "pull" in issue["html_url"]:
@@ -148,21 +163,10 @@ class Backup:
             save_json(f'{dir}/{issue["number"]}/assignee.json', backup_assignee)
             save_json(f'{dir}/{issue["number"]}/user.json', backup_user)
 
-            for comment in self.api.get_comments_for_issue(repo, issue["number"]):
-                os.makedirs(
-                    f'{dir}/{issue["number"]}/comments/{comment["id"]}', exist_ok=True
-                )
-                backup_comment = filter_fields(["id", "body", "created_at"], comment)
-                backup_user = filter_fields(["login"], comment["user"])
-
-                save_json(
-                    f'{dir}/{issue["number"]}/comments/{comment["id"]}/comment.json',
-                    backup_comment,
-                )
-                save_json(
-                    f'{dir}/{issue["number"]}/comments/{comment["id"]}/user.json',
-                    backup_user,
-                )
+            self.__save_comments(
+                self.api.get_comments_for_issue(repo, issue["number"]),
+                f'{dir}/{issue["number"]}',
+            )
 
     def __save_pulls(self, pulls, dir, repo):
         for pull in pulls:
@@ -187,21 +191,10 @@ class Backup:
             save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
             save_json(f'{dir}/{pull["number"]}/base.json', backup_base)
 
-            for comment in self.api.get_comments_for_issue(repo, pull["number"]):
-                os.makedirs(
-                    f'{dir}/{pull["number"]}/comments/{comment["id"]}', exist_ok=True
-                )
-                backup_comment = filter_fields(["id", "body", "created_at"], comment)
-                backup_user = filter_fields(["login"], comment["user"])
-
-                save_json(
-                    f'{dir}/{pull["number"]}/comments/{comment["id"]}/comment.json',
-                    backup_comment,
-                )
-                save_json(
-                    f'{dir}/{pull["number"]}/comments/{comment["id"]}/user.json',
-                    backup_user,
-                )
+            self.__save_comments(
+                self.api.get_comments_for_issue(repo, pull["number"]),
+                f'{dir}/{pull["number"]}',
+            )
 
             for review in self.api.get_reviews(repo, pull["number"]):
                 os.makedirs(
