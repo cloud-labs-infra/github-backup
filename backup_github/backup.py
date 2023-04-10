@@ -3,13 +3,15 @@ import logging
 import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import Optional
 
 from backup_github.github import GithubAPI
+from backup_github.metrics import git_size
 
 
 def save_json(path, content):
-    mode = "a" if os.path.exists(path) else "w"
+    mode = "w" if os.path.exists(path) else "w+"
     with open(path, mode) as file:
         logging.debug(f"Save to {file}: {content}")
         json.dump(content, file, indent=4)
@@ -69,6 +71,7 @@ class Backup:
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f"Repositories dir is {repo_dir}")
         self.__save_repositories(self.repositories, repo_dir)
+        git_size.inc(sum(p.stat().st_size for p in Path(repo_dir).rglob("*")))
 
     def __get_repositories(self):
         return [repo["name"] for repo in self.api.get_repositories()]
