@@ -198,9 +198,10 @@ class Backup:
                 backup_user,
             )
 
-            for comment in self.api.get_comments_for_review(
+            comments = self.api.get_comments_for_review(
                 repo, pull["number"], review["id"]
-            ):
+            )
+            for comment in comments:
                 os.makedirs(
                     f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
                     exist_ok=True,
