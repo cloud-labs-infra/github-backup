@@ -109,9 +109,9 @@ class Backup:
             filter_save(member, ["id", "login"], f"{member_dir}/member.json")
             filter_save(membership, ["state", "role"], f"{member_dir}/membership.json")
 
-    def __save_comments(self, comments, outter_dir):
+    def __save_comments(self, comments, outer_dir):
         for comment in comments:
-            comment_dir = f'{outter_dir}/comments/{comment["id"]}'
+            comment_dir = f'{outer_dir}/comments/{comment["id"]}'
             os.makedirs(comment_dir, exist_ok=True)
             filter_save(
                 comment, ["id", "body", "created_at"], f"{comment_dir}/comment.json"
