@@ -8,7 +8,7 @@ import sys
 def save_json(path, content):
     mode = "w" if os.path.exists(path) else "w+"
     with open(path, mode) as file:
-        logging.debug(f"Save to {file}: {content}")
+        logging.debug(f"Save to {file.name}: {content}")
         json.dump(content, file, indent=4)
 
 
@@ -16,9 +16,9 @@ def filter_fields(fields, src):
     return {field: src[field] if src and field in src else None for field in fields}
 
 
-def subprocess_handle(func):
+def subprocess_handle(func, args):
     try:
-        func()
+        func(args)
     except subprocess.CalledProcessError as e:
         logging.error("Subprocess call error")
         logging.error("exit code: {}".format(e.returncode))

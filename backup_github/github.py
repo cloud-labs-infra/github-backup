@@ -30,18 +30,20 @@ class GithubAPI:
 
     def raise_by_status(self, response):
         if response.status_code == 403:
-            logging.info("Status is 403 - Rate limit exceeded exception")
+            logging.warning("Status is 403 - Rate limit exceeded exception")
             raise self.RateLimitExceededException(
                 json.loads(response.content)["message"]
             )
         elif response.status_code == 404:
-            logging.info(f"Status is {response.status_code} - Client error: Not found")
+            logging.warning(
+                f"Status is {response.status_code} - Client error: Not found"
+            )
             raise self.ClientError(json.loads(response.content)["message"])
         elif 400 <= response.status_code < 500:
-            logging.info(f"Status is {response.status_code} - Client error")
+            logging.warning(f"Status is {response.status_code} - Client error")
             raise self.ClientError(json.loads(response.content)["message"])
         elif 500 <= response.status_code < 600:
-            logging.info(f"Status is {response.status_code} - Server error")
+            logging.warning(f"Status is {response.status_code} - Server error")
             raise self.ServerError(json.loads(response.content)["message"])
 
     def retry(func):
@@ -96,9 +98,9 @@ class GithubAPI:
         params["per_page"] = 100
         while True:
             resp = requests.get(url, headers=self.headers, params=params)
-            logging.info(f"Make request to {url}")
+            logging.debug(f"Make request to {url}")
             self.raise_by_status(resp)
-            logging.info("OK")
+            logging.debug("OK")
             if isinstance(resp.json(), list):
                 res += resp.json()
             else:

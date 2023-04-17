@@ -38,9 +38,12 @@ class Backup:
         repo_dir = self.output_dir + "/repos"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
+            pull_dir = f"{repo_dir}/{repo}/pulls"
+            logging.debug(f"Pulls dir is {pull_dir}")
             pulls = self.api.get_pulls(repo)
-            os.makedirs(repo_dir + "/" + repo + "/pulls", exist_ok=True)
-            self.__save_pulls(pulls, repo_dir + "/" + repo + "/pulls", repo)
+            logging.debug(f"Pulls: {pulls}")
+            os.makedirs(pull_dir, exist_ok=True)
+            self.__save_pulls(pulls, pull_dir, repo)
 
     def backup_issues(self):
         repo_dir = self.output_dir + "/repos"
@@ -49,6 +52,7 @@ class Backup:
             issues_dir = f"{repo_dir}/{repo}/issues"
             logging.debug(f"Issues dir is {issues_dir}")
             issues = self.api.get_issues(repo)
+            logging.debug(f"Issues: {issues}")
             os.makedirs(issues_dir, exist_ok=True)
             self.__save_issues(issues, issues_dir, repo)
 
@@ -58,6 +62,7 @@ class Backup:
         repo_dir = self.output_dir + "/repos"
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f"Repositories dir is {repo_dir}")
+        logging.debug(f"Repositories: {self.repositories}")
         self.__save_repositories(self.repositories, repo_dir)
         git_size.inc(sum(p.stat().st_size for p in Path(repo_dir).rglob("*")))
 
@@ -91,11 +96,9 @@ class Backup:
             repo_url = (
                 f"https://{self.token}@github.com/{self.organization}/{repository}.git"
             )
-            subprocess_handle(
-                subprocess.check_output(["git", "clone", "--bare", repo_url])
-            )
+            subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
         os.chdir(f"{repository}.git")
-        subprocess_handle(subprocess.check_output(["git", "fetch", "-p"]))
+        subprocess_handle(subprocess.check_output, ["git", "fetch", "-p"])
         os.chdir(cur_dir)
 
     def __save_members(self, members, member_dir):
@@ -128,6 +131,7 @@ class Backup:
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
             if "pull" in issue["html_url"]:
+                logging.debug(f"Issue {issue['number']} is pull")
                 continue
 
             os.makedirs(f'{dir}/{issue["number"]}', exist_ok=True)
