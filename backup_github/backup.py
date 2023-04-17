@@ -6,7 +6,7 @@ from typing import Optional
 
 from backup_github.github import GithubAPI
 from backup_github.metrics import git_size
-from backup_github.utils import filter_fields, save_json, subprocess_handle
+from backup_github.utils import filter_save, subprocess_handle
 
 
 class Backup:
@@ -39,10 +39,10 @@ class Backup:
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
             pull_dir = f"{repo_dir}/{repo}/pulls"
+            os.makedirs(pull_dir, exist_ok=True)
             logging.debug(f"Pulls dir is {pull_dir}")
             pulls = self.api.get_pulls(repo)
             logging.debug(f"Pulls: {pulls}")
-            os.makedirs(pull_dir, exist_ok=True)
             self.__save_pulls(pulls, pull_dir, repo)
 
     def backup_issues(self):
@@ -50,10 +50,10 @@ class Backup:
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
             issues_dir = f"{repo_dir}/{repo}/issues"
+            os.makedirs(issues_dir, exist_ok=True)
             logging.debug(f"Issues dir is {issues_dir}")
             issues = self.api.get_issues(repo)
             logging.debug(f"Issues: {issues}")
-            os.makedirs(issues_dir, exist_ok=True)
             self.__save_issues(issues, issues_dir, repo)
 
     def backup_repositories(self):
@@ -72,12 +72,12 @@ class Backup:
     def __save_repositories(self, repositories, dir):
         for repository in repositories:
             self.__save_repo_content(repository, dir)
-
             repo = self.api.get_repo(repository)
-            backup_repo = filter_fields(
-                ["id", "name", "private", "fork", "default_branch", "visibility"], repo
+            filter_save(
+                repo,
+                ["id", "name", "private", "fork", "default_branch", "visibility"],
+                f"{dir}/{repository}/repo.json",
             )
-            save_json(f"{dir}/{repository}/repo.json", backup_repo)
 
     def __save_repo_content(self, repository, dir):
         cur_dir = os.getcwd()
@@ -101,32 +101,22 @@ class Backup:
         subprocess_handle(subprocess.check_output, ["git", "fetch", "-p"])
         os.chdir(cur_dir)
 
-    def __save_members(self, members, member_dir):
+    def __save_members(self, members, members_dir):
         for member in members:
-            os.makedirs(f'{member_dir}/{member["login"]}', exist_ok=True)
-            backup_member = filter_fields(["id", "login"], member)
+            member_dir = f'{members_dir}/{member["login"]}'
+            os.makedirs(member_dir, exist_ok=True)
             membership = self.api.get_member_status(member["login"])
-            backup_membership = filter_fields(["state", "role"], membership)
-
-            save_json(f'{member_dir}/{member["login"]}/member.json', backup_member)
-            save_json(
-                f'{member_dir}/{member["login"]}/membership.json', backup_membership
-            )
+            filter_save(member, ["id", "login"], f"{member_dir}/member.json")
+            filter_save(membership, ["state", "role"], f"{member_dir}/membership.json")
 
     def __save_comments(self, comments, outter_dir):
         for comment in comments:
-            os.makedirs(f'{outter_dir}/comments/{comment["id"]}', exist_ok=True)
-            backup_comment = filter_fields(["id", "body", "created_at"], comment)
-            backup_user = filter_fields(["login"], comment["user"])
-
-            save_json(
-                f'{outter_dir}/comments/{comment["id"]}/comment.json',
-                backup_comment,
+            comment_dir = f'{outter_dir}/comments/{comment["id"]}'
+            os.makedirs(comment_dir, exist_ok=True)
+            filter_save(
+                comment, ["id", "body", "created_at"], f"{comment_dir}/comment.json"
             )
-            save_json(
-                f'{outter_dir}/comments/{comment["id"]}/user.json',
-                backup_user,
-            )
+            filter_save(comment["user"], ["login"], f"{comment_dir}/user.json")
 
     def __save_issues(self, issues, dir, repo):
         for issue in issues:
@@ -134,22 +124,21 @@ class Backup:
                 logging.debug(f"Issue {issue['number']} is pull")
                 continue
 
-            os.makedirs(f'{dir}/{issue["number"]}', exist_ok=True)
-            os.makedirs(f'{dir}/{issue["number"]}/comments', exist_ok=True)
+            issue_dir = f'{dir}/{issue["number"]}'
+            os.makedirs(issue_dir, exist_ok=True)
+            os.makedirs(f"{issue_dir}/comments", exist_ok=True)
 
-            backup_issue = filter_fields(
-                ["title", "body", "created_at", "state"], issue
+            filter_save(
+                issue,
+                ["title", "body", "created_at", "state"],
+                f"{issue_dir}/issue.json",
             )
-            backup_assignee = filter_fields(["login"], issue["assignee"])
-            backup_user = filter_fields(["login"], issue["user"])
-
-            save_json(f'{dir}/{issue["number"]}/issue.json', backup_issue)
-            save_json(f'{dir}/{issue["number"]}/assignee.json', backup_assignee)
-            save_json(f'{dir}/{issue["number"]}/user.json', backup_user)
+            filter_save(issue["assignee"], ["login"], f"{issue_dir}/assignee.json")
+            filter_save(issue["user"], ["login"], f"{issue_dir}/user.json")
 
             self.__save_comments(
                 self.api.get_comments_for_issue(repo, issue["number"]),
-                f'{dir}/{issue["number"]}',
+                issue_dir,
             )
 
     def __save_pulls(self, pulls, dir, repo):
@@ -157,56 +146,46 @@ class Backup:
             if "pull" not in pull["html_url"]:
                 continue
 
-            os.makedirs(f'{dir}/{pull["number"]}', exist_ok=True)
-            os.makedirs(f'{dir}/{pull["number"]}/comments', exist_ok=True)
-            os.makedirs(f'{dir}/{pull["number"]}/reviews', exist_ok=True)
+            pull_dir = f'{dir}/{pull["number"]}'
+            os.makedirs(pull_dir, exist_ok=True)
+            os.makedirs(f"{pull_dir}/comments", exist_ok=True)
+            os.makedirs(f"{pull_dir}/reviews", exist_ok=True)
 
-            backup_pull = filter_fields(
-                ["title", "body", "created_at", "state", "merge_commit_sha"], pull
+            filter_save(
+                pull,
+                ["title", "body", "created_at", "state", "merge_commit_sha"],
+                f"{pull_dir}/pull.json",
             )
-            backup_assignee = filter_fields(["login"], pull["assignee"])
-            backup_user = filter_fields(["login"], pull["user"])
-            backup_head = filter_fields(["ref", "sha"], pull["head"])
-            backup_base = filter_fields(["ref", "sha"], pull["base"])
-
-            save_json(f'{dir}/{pull["number"]}/pull.json', backup_pull)
-            save_json(f'{dir}/{pull["number"]}/assignee.json', backup_assignee)
-            save_json(f'{dir}/{pull["number"]}/user.json', backup_user)
-            save_json(f'{dir}/{pull["number"]}/head.json', backup_head)
-            save_json(f'{dir}/{pull["number"]}/base.json', backup_base)
+            filter_save(pull["assignee"], ["login"], f"{pull_dir}/assignee.json")
+            filter_save(pull["user"], ["login"], f"{pull_dir}/user.json")
+            filter_save(pull["head"], ["ref", "sha"], f"{pull_dir}/head.json")
+            filter_save(pull["base"], ["ref", "sha"], f"{pull_dir}/base.json")
 
             self.__save_comments(
                 self.api.get_comments_for_issue(repo, pull["number"]),
-                f'{dir}/{pull["number"]}',
+                pull_dir,
             )
             self.__save_pull_reviews(repo, pull, dir)
 
     def __save_pull_reviews(self, repo, pull, dir):
         for review in self.api.get_reviews(repo, pull["number"]):
-            os.makedirs(f'{dir}/{pull["number"]}/reviews/{review["id"]}', exist_ok=True)
-            backup_review = filter_fields(
-                ["id", "body", "state", "submitted_at", "commit_id"], review
+            review_dir = f'{dir}/{pull["number"]}/reviews/{review["id"]}'
+            os.makedirs(review_dir, exist_ok=True)
+            filter_save(
+                review,
+                ["id", "body", "state", "submitted_at", "commit_id"],
+                f"{review_dir}/review.json",
             )
-            backup_user = filter_fields(["login"], review["user"])
-
-            save_json(
-                f'{dir}/{pull["number"]}/reviews/{review["id"]}/review.json',
-                backup_review,
-            )
-            save_json(
-                f'{dir}/{pull["number"]}/reviews/{review["id"]}/user.json',
-                backup_user,
-            )
+            filter_save(review["user"], ["login"], f"{review_dir}/user.json")
 
             comments = self.api.get_comments_for_review(
                 repo, pull["number"], review["id"]
             )
             for comment in comments:
-                os.makedirs(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}',
-                    exist_ok=True,
-                )
-                backup_comment = filter_fields(
+                comments_dir = f'{review_dir}/comments/{comment["id"]}'
+                os.makedirs(comments_dir, exist_ok=True)
+                filter_save(
+                    comment,
                     [
                         "id",
                         "body",
@@ -219,15 +198,6 @@ class Backup:
                         "original_commit_id",
                         "in_reply_to_id",
                     ],
-                    comment,
+                    f"{comments_dir}/comment.json",
                 )
-                backup_user = filter_fields(["login"], comment["user"])
-
-                save_json(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/comment.json',
-                    backup_comment,
-                )
-                save_json(
-                    f'{dir}/{pull["number"]}/reviews/{review["id"]}/comments/{comment["id"]}/user.json',
-                    backup_user,
-                )
+                filter_save(comment["user"], ["login"], f"{comments_dir}/user.json")
