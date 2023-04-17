@@ -27,7 +27,7 @@ class Backup:
         self.api = GithubAPI(self.token, self.organization, self.output_dir)
 
     def backup_members(self):
-        members_dir = self.output_dir + "/members"
+        members_dir = f"{self.output_dir}/members"
         os.makedirs(members_dir, exist_ok=True)
         logging.debug(f"Member dir is {members_dir}")
         org_members = self.api.get_members()
@@ -35,7 +35,7 @@ class Backup:
         self.__save_members(org_members, members_dir)
 
     def backup_pulls(self):
-        repo_dir = self.output_dir + "/repos"
+        repo_dir = f"{self.output_dir}/repos"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
             pull_dir = f"{repo_dir}/{repo}/pulls"
@@ -46,7 +46,7 @@ class Backup:
             self.__save_pulls(pulls, pull_dir, repo)
 
     def backup_issues(self):
-        repo_dir = self.output_dir + "/repos"
+        repo_dir = f"{self.output_dir}/repos"
         repos = list(os.walk(repo_dir))[0][1]
         for repo in repos:
             issues_dir = f"{repo_dir}/{repo}/issues"
@@ -59,7 +59,7 @@ class Backup:
     def backup_repositories(self):
         if self.repositories is None:
             self.repositories = self.__get_repositories()
-        repo_dir = self.output_dir + "/repos"
+        repo_dir = f"{self.output_dir}/repos"
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f"Repositories dir is {repo_dir}")
         logging.debug(f"Repositories: {self.repositories}")

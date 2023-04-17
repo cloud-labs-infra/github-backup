@@ -83,7 +83,7 @@ class GithubAPI:
     ):
         self.headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer " + token,
+            "Authorization": f"Bearer {token}",
         }
         self.token = token
         self.organization = organization
