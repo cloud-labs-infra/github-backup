@@ -22,10 +22,13 @@ def main():
             parsed_args.output_dir,
             parsed_args.repository,
         )
-        backup.backup_members()
         backup.backup_repositories()
-        backup.backup_issues()
-        backup.backup_pulls()
+        if parsed_args.members or parsed_args.all:
+            backup.backup_members()
+        if parsed_args.issues or parsed_args.all:
+            backup.backup_issues()
+        if parsed_args.pulls or parsed_args.all:
+            backup.backup_pulls()
         success.set(1)
     except argparse.ArgumentError as e:
         logging.error(e.message)
