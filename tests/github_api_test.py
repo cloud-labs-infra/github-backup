@@ -112,7 +112,6 @@ class TestGithubApi:
 
     def test_make_request_rate_limit_exceeded_fail(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
                 request_headers=self.headers,
