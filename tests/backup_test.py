@@ -226,20 +226,20 @@ class TestBackup:
         )
 
     def test_backup_pull_is_not_issue(self):
-        os.makedirs(self.backup.output_dir + "/repos/test")
+        os.makedirs(f"{self.backup.output_dir}/repos/test")
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_issues()
-        assert not os.path.exists(self.backup.output_dir + "/repos/test/issues/3")
-        assert not os.path.exists(self.backup.output_dir + "/repos/test/issues/4")
+        assert not os.path.exists(f"{self.backup.output_dir}/repos/test/issues/3")
+        assert not os.path.exists(f"{self.backup.output_dir}/repos/test/issues/4")
 
     def test_backup_issues(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_issues()
-        assert os.path.exists(self.backup.output_dir + "/repos/test/issues/1/comments")
-        assert os.path.exists(self.backup.output_dir + "/repos/test/issues/2/comments")
+        assert os.path.exists(f"{self.backup.output_dir}/repos/test/issues/1/comments")
+        assert os.path.exists(f"{self.backup.output_dir}/repos/test/issues/2/comments")
 
         self.compare_json(
             "tests/resources/backup/repos/test/issues/1/issue.json",
@@ -267,7 +267,7 @@ class TestBackup:
         )
 
     def test_backup_issues_comments(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_issues()
@@ -289,7 +289,7 @@ class TestBackup:
         )
 
     def test_backup_pulls(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_pulls()
@@ -335,7 +335,7 @@ class TestBackup:
         )
 
     def test_backup_pull_comments(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_pulls()
@@ -358,7 +358,7 @@ class TestBackup:
         assert not os.listdir(f"{self.backup.output_dir}/repos/test/pulls/4/comments")
 
     def test_backup_review(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_pulls()
@@ -373,7 +373,7 @@ class TestBackup:
         assert not os.listdir(f"{self.backup.output_dir}/repos/test/pulls/4/reviews")
 
     def test_backup_review_comments(self):
-        os.makedirs(self.backup.output_dir + "/repos/test", exist_ok=True)
+        os.makedirs(f"{self.backup.output_dir}/repos/test", exist_ok=True)
         with requests_mock.Mocker() as m:
             self.mock_github(m)
             self.backup.backup_pulls()
