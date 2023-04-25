@@ -29,6 +29,11 @@ class TestGithubApi:
             },
         },
     }
+    user = {
+        "login": "octocat",
+        "url": "https://api.github.com/users/octocat",
+        "html_url": "https://github.com/octocat",
+    }
 
     def test_make_request(self):
         with requests_mock.Mocker() as m:
@@ -37,13 +42,7 @@ class TestGithubApi:
                 request_headers=self.headers,
                 response_list=[
                     {
-                        "json": [
-                            {
-                                "login": "octocat",
-                                "url": "https://api.github.com/users/octocat",
-                                "html_url": "https://github.com/octocat",
-                            }
-                        ],
+                        "json": [self.user],
                         "status_code": 200,
                     }
                 ],
@@ -53,13 +52,8 @@ class TestGithubApi:
                 request_headers=self.headers,
                 response_list=[self.empty_ok],
             )
-            resp = self.gh.make_request("https://api.github.com/orgs/test/members")
-            assert resp == [
-                {
-                    "login": "octocat",
-                    "url": "https://api.github.com/users/octocat",
-                    "html_url": "https://github.com/octocat",
-                }
+            assert self.gh.make_request("https://api.github.com/orgs/test/members") == [
+                self.user
             ]
 
     def test_make_request_404(self):
@@ -130,7 +124,7 @@ class TestGithubApi:
             with pytest.raises(Exception):
                 assert (
                     self.gh.make_request("https://api.github.com/orgs/test/members")
-                    == {}
+                    == []
                 )
 
     def test_make_request_timeout(self):
