@@ -60,11 +60,6 @@ class TestBackup:
     with open("tests/resources/github/reviews_comments.json") as reviews_comments_file:
         reviews_comments = json.load(reviews_comments_file)
 
-    def check_json(self, expected, path):
-        assert os.path.isfile(path)
-        actual = json.load(open(path))
-        assert expected == actual
-
     def mock_github(self, m):
         m.get(
             url="https://api.github.com/orgs/org/members?page=1",
