@@ -171,6 +171,7 @@ class Backup:
         for review in self.api.get_reviews(repo, pull["number"]):
             review_dir = f'{dir}/{pull["number"]}/reviews/{review["id"]}'
             os.makedirs(review_dir, exist_ok=True)
+            os.makedirs(f"{review_dir}/comments", exist_ok=True)
             filter_save(
                 review,
                 ["id", "body", "state", "submitted_at", "commit_id"],
