@@ -50,7 +50,6 @@ class GithubAPI:
         def ret(self, *args, **kwargs):
             for _ in range(self.retry_count + 1):
                 try:
-                    time.sleep(1)
                     return func(self, *args, **kwargs)
                 except self.RateLimitExceededException:
                     logging.warning("Rate limit exceeded")
