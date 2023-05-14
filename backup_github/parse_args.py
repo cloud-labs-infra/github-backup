@@ -36,5 +36,32 @@ def parse_args(args=None) -> argparse.Namespace:
         dest="repository",
         help="name of repositories to limit backup",
     )
+    parser.add_argument(
+        "-i",
+        "--issues",
+        action="store_true",
+        dest="issues",
+        help="run backup of issues",
+    )
+    parser.add_argument(
+        "-p",
+        "--pulls",
+        action="store_true",
+        dest="pulls",
+        help="run backup of pulls",
+    )
+    parser.add_argument(
+        "-m",
+        "--members",
+        action="store_true",
+        dest="members",
+        help="run backup of members",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        dest="all",
+        help="run backup of all data",
+    )
     parsed = parser.parse_args(args)
     return parsed

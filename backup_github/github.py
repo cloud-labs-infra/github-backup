@@ -30,25 +30,26 @@ class GithubAPI:
 
     def raise_by_status(self, response):
         if response.status_code == 403:
-            logging.info("Status is 403 - Rate limit exceeded exception")
+            logging.warning("Status is 403 - Rate limit exceeded exception")
             raise self.RateLimitExceededException(
                 json.loads(response.content)["message"]
             )
         elif response.status_code == 404:
-            logging.info(f"Status is {response.status_code} - Client error: Not found")
+            logging.warning(
+                f"Status is {response.status_code} - Client error: Not found"
+            )
             raise self.ClientError(json.loads(response.content)["message"])
         elif 400 <= response.status_code < 500:
-            logging.info(f"Status is {response.status_code} - Client error")
+            logging.warning(f"Status is {response.status_code} - Client error")
             raise self.ClientError(json.loads(response.content)["message"])
         elif 500 <= response.status_code < 600:
-            logging.info(f"Status is {response.status_code} - Server error")
+            logging.warning(f"Status is {response.status_code} - Server error")
             raise self.ServerError(json.loads(response.content)["message"])
 
     def retry(func):
         def ret(self, *args, **kwargs):
             for _ in range(self.retry_count + 1):
                 try:
-                    time.sleep(1)
                     return func(self, *args, **kwargs)
                 except self.RateLimitExceededException:
                     logging.warning("Rate limit exceeded")
@@ -81,7 +82,7 @@ class GithubAPI:
     ):
         self.headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer " + token,
+            "Authorization": f"Bearer {token}",
         }
         self.token = token
         self.organization = organization
@@ -96,9 +97,9 @@ class GithubAPI:
         params["per_page"] = 100
         while True:
             resp = requests.get(url, headers=self.headers, params=params)
-            logging.info(f"Make request to {url}")
+            logging.debug(f"Make request to {url}")
             self.raise_by_status(resp)
-            logging.info("OK")
+            logging.debug("OK")
             if isinstance(resp.json(), list):
                 res += resp.json()
             else:
@@ -109,84 +110,54 @@ class GithubAPI:
         return res
 
     def get_organization(self):
-        return self.make_request("https://api.github.com/orgs/" + self.organization)
+        return self.make_request(f"https://api.github.com/orgs/{self.organization}")
 
     def get_members(self):
         return self.make_request(
-            "https://api.github.com/orgs/" + self.organization + "/members"
+            f"https://api.github.com/orgs/{self.organization}/members"
         )
 
     def get_member_status(self, member_login):
         return self.make_request(
-            "https://api.github.com/orgs/"
-            + self.organization
-            + "/memberships/"
-            + member_login
+            f"https://api.github.com/orgs/{self.organization}/memberships/{member_login}"
         )
 
     def get_repo(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/" + self.organization + "/" + repo_name
+            f"https://api.github.com/repos/{self.organization}/{repo_name}"
         )
 
     def get_issues(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/issues",
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/issues",
             {"state": "all"},
         )
 
     def get_pulls(self, repo_name):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls",
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls",
             {"state": "all"},
         )
 
     def get_comments_for_issue(self, repo_name, issue_number):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/issues/"
-            + str(issue_number)
-            + "/comments"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/issues/{str(issue_number)}/comments"
         )
 
     def get_reviews(self, repo_name, pull_number):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls/"
-            + str(pull_number)
-            + "/reviews"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls/{str(pull_number)}/reviews"
         )
 
     def get_comments_for_review(self, repo_name, pull_number, review_id):
         return self.make_request(
-            "https://api.github.com/repos/"
-            + self.organization
-            + "/"
-            + repo_name
-            + "/pulls/"
-            + str(pull_number)
-            + "/reviews/"
-            + str(review_id)
-            + "/comments"
+            f"https://api.github.com/repos/{self.organization}/{repo_name}/pulls/"
+            f"{str(pull_number)}/reviews/{str(review_id)}/comments"
         )
 
     def get_repositories(self):
         return self.make_request(
-            "https://api.github.com/orgs/" + self.organization + "/repos"
+            f"https://api.github.com/orgs/{self.organization}/repos"
         )
 
     def get_rate_limit(self):

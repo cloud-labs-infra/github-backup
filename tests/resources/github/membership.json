@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "state": "active",
+    "role": "admin"
+  },
+  {
+    "id": 2,
+    "state": "active",
+    "role": "member"
+  }
+]

@@ -9,7 +9,7 @@ from backup_github.backup import Backup
 from backup_github.metrics import git_size, meta_size, registry, success, time
 from backup_github.parse_args import parse_args
 
-logging.basicConfig(level=logging.NOTSET)
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
@@ -22,10 +22,21 @@ def main():
             parsed_args.output_dir,
             parsed_args.repository,
         )
-        backup.backup_members()
+        logging.info("Start backup of repos content")
         backup.backup_repositories()
-        backup.backup_issues()
-        backup.backup_pulls()
+        logging.info("Finish backup of repos content")
+        if parsed_args.members or parsed_args.all:
+            logging.info("Start backup of members")
+            backup.backup_members()
+            logging.info("Finish backup of members")
+        if parsed_args.issues or parsed_args.all:
+            logging.info("Start backup of issues")
+            backup.backup_issues()
+            logging.info("Finish backup of issues")
+        if parsed_args.pulls or parsed_args.all:
+            logging.info("Start backup of pulls")
+            backup.backup_pulls()
+            logging.info("Finish backup of pulls")
         success.set(1)
     except argparse.ArgumentError as e:
         logging.error(e.message)

@@ -28,9 +28,9 @@ This command runs all unit tests and calculates coverage
 
 CLI Usage is as follows:
 
-    poetry run backup-github [-h] [-t TOKEN] [-o OUTPUT_DIR]
-               [-r REPOSITORY [REPOSITORY ...]]
-               ORGANIZATION_NAME
+    poetry run backup-github [-h] [-t TOKEN] [-o OUTPUT_DIR] [-r REPOSITORY [REPOSITORY ...]] [-i] [-p] [-m]
+                                               [--all]
+                                               ORGANIZATION_NAME
 
     Backup a GitHub organization
     
@@ -45,6 +45,10 @@ CLI Usage is as follows:
                                             directory for backup
       -r REPOSITORY [REPOSITORY ...], --repository REPOSITORY [REPOSITORY ...]
                                             name of repositories to limit backup
+      -i, --issues                          run backup of issues
+      -p, --pulls                           run backup of pulls
+      -m, --members                         run backup of members
+      --all                                 run backup of all data
 
 
 ## Backup structure

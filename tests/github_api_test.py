@@ -9,162 +9,114 @@ from backup_github.github import GithubAPI
 
 class TestGithubApi:
     gh = GithubAPI("test_token", "test", ".", 1, 1)
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer test_token",
+    }
+    empty_ok = {"json": [], "status_code": 200}
+    empty_fail = {"json": {}, "status_code": 404}
+    message_fail = {
+        "status_code": 404,
+        "content": bytes('{"message": "failed"}', "utf-8"),
+    }
+    rate_limit = {
+        "resources": {
+            "core": {
+                "limit": 5000,
+                "remaining": 4999,
+                "reset": time.time(),
+                "used": 1,
+            },
+        },
+    }
+    user = {
+        "login": "octocat",
+        "url": "https://api.github.com/users/octocat",
+        "html_url": "https://github.com/octocat",
+    }
 
     def test_make_request(self):
         with requests_mock.Mocker() as m:
             m.get(
                 url="https://api.github.com/orgs/test/members?page=1",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer test_token",
-                },
+                request_headers=self.headers,
                 response_list=[
                     {
-                        "json": [
-                            {
-                                "login": "octocat",
-                                "url": "https://api.github.com/users/octocat",
-                                "html_url": "https://github.com/octocat",
-                            }
-                        ],
+                        "json": [self.user],
                         "status_code": 200,
                     }
                 ],
             )
             m.get(
                 url="https://api.github.com/orgs/test/members?page=2",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer test_token",
-                },
-                response_list=[
-                    {
-                        "json": [],
-                        "status_code": 200,
-                    }
-                ],
+                request_headers=self.headers,
+                response_list=[self.empty_ok],
             )
-            resp = self.gh.make_request("https://api.github.com/orgs/test/members")
-            assert resp == [
-                {
-                    "login": "octocat",
-                    "url": "https://api.github.com/users/octocat",
-                    "html_url": "https://github.com/octocat",
-                }
+            assert self.gh.make_request("https://api.github.com/orgs/test/members") == [
+                self.user
             ]
 
     def test_make_request_404(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
-                response_list=[{"json": {}, "status_code": 404}],
+                request_headers=self.headers,
+                response_list=[self.empty_fail],
             )
             with pytest.raises(Exception):
                 self.gh.make_request("https://api.github.com/orgs/test/members")
 
     def test_make_request_retry(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
+                request_headers=self.headers,
                 response_list=[
-                    {
-                        "status_code": 404,
-                        "content": bytes('{"message": "failed"}', "utf-8"),
-                    },
-                    {"json": {}, "status_code": 200},
+                    self.message_fail,
+                    self.empty_ok,
                 ],
             )
             assert (
-                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                self.gh.make_request("https://api.github.com/orgs/test/members") == []
             )
 
     def test_make_request_rate_limit_exceeded_ok(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
+                request_headers=self.headers,
                 response_list=[
-                    {
-                        "status_code": 403,
-                        "content": bytes('{"message": "failed"}', "utf-8"),
-                    },
-                    {"json": {}, "status_code": 200},
+                    self.message_fail,
+                    self.empty_ok,
                 ],
             )
             m.get(
                 url="https://api.github.com/rate_limit",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
+                request_headers=self.headers,
                 response_list=[
                     {
-                        "json": {
-                            "resources": {
-                                "core": {
-                                    "limit": 5000,
-                                    "remaining": 4999,
-                                    "reset": time.time(),
-                                    "used": 1,
-                                },
-                            },
-                        },
+                        "json": self.rate_limit,
                         "status_code": 200,
                     }
                 ],
             )
             assert (
-                self.gh.make_request("https://api.github.com/orgs/test/members") == {}
+                self.gh.make_request("https://api.github.com/orgs/test/members") == []
             )
 
     def test_make_request_rate_limit_exceeded_fail(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
-                response_list=[
-                    {
-                        "content": bytes('{"message": "failed"}', "utf-8"),
-                        "status_code": 403,
-                    }
-                ],
+                request_headers=self.headers,
+                response_list=[self.message_fail],
             )
             m.get(
                 url="https://api.github.com/rate_limit",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
+                request_headers=self.headers,
                 response_list=[
                     {
-                        "json": {
-                            "resources": {
-                                "core": {
-                                    "limit": 5000,
-                                    "remaining": 4999,
-                                    "reset": time.time(),
-                                    "used": 1,
-                                },
-                            },
-                        },
+                        "json": self.rate_limit,
                         "status_code": 200,
                     }
                 ],
@@ -172,18 +124,14 @@ class TestGithubApi:
             with pytest.raises(Exception):
                 assert (
                     self.gh.make_request("https://api.github.com/orgs/test/members")
-                    == {}
+                    == []
                 )
 
     def test_make_request_timeout(self):
         with requests_mock.Mocker() as m:
-            token = "test_token"
             m.get(
                 url="https://api.github.com/orgs/test/members",
-                request_headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": "Bearer " + token,
-                },
+                request_headers=self.headers,
                 exc=requests.exceptions.Timeout,
             )
             with pytest.raises(Exception):

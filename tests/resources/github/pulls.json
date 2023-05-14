@@ -1,0 +1,48 @@
+[
+  {
+    "number": 3,
+    "title": "test3",
+    "body": "test3 description",
+    "created_at": "2022-10-18T13:00:57Z",
+    "user": {
+      "login": "user1"
+    },
+    "state": "closed",
+    "assignee": {
+      "login": "assignee1"
+    },
+    "head": {
+      "ref": "test-branch1",
+      "sha": "22dhjw4456fkeavkaw9jv"
+    },
+    "base": {
+      "ref": "master",
+      "sha": "267ud8ihjw45wdfvas6fk"
+    },
+    "html_url": "https://github.com/normal-pull",
+    "merge_commit_sha": "267ud8ihjw45wdfvas6fk"
+  },
+  {
+    "number": 4,
+    "title": "test4",
+    "body": "test4 description",
+    "created_at": "2022-10-18T13:00:57Z",
+    "user": {
+      "login": "user2"
+    },
+    "state": "open",
+    "assignee": {
+      "login": "assignee2"
+    },
+    "head": {
+      "ref": "test-branch2",
+      "sha": "22dhjw4456fkeavkaw9jv"
+    },
+    "base": {
+      "ref": "master",
+      "sha": "267ud8ihjw45wdfvas6fk"
+    },
+    "html_url": "https://github.com/normal-pull",
+    "merge_commit_sha": "267ud8ihjw45wdfvas6fk"
+  }
+]
