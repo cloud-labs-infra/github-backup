@@ -122,7 +122,7 @@ class GithubAPI:
             f"https://api.github.com/orgs/{self.organization}/memberships/{member_login}"
         )
 
-    def get_repo(self, repo_name):
+    def get_repository(self, repo_name):
         return self.make_request(
             f"https://api.github.com/repos/{self.organization}/{repo_name}"
         )

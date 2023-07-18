@@ -71,8 +71,10 @@ class Backup:
 
     def __save_repositories(self, repositories, dir):
         for repository in repositories:
+            if self.api.get_repository(repository)['size'] == 0:
+                continue
             self.__save_repo_content(repository, dir)
-            repo = self.api.get_repo(repository)
+            repo = self.api.get_repository(repository)
             filter_save(
                 repo,
                 ["id", "name", "private", "fork", "default_branch", "visibility"],
