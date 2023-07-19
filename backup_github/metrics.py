@@ -2,7 +2,7 @@ from prometheus_client import CollectorRegistry, Gauge
 
 registry = CollectorRegistry()
 success = Gauge("github_backup_success", "1 if backup is okay", registry=registry)
-time = Gauge(
+backup_time = Gauge(
     "github_backup_last_timestamp_seconds",
     "time of last backup in unixtime",
     registry=registry,
