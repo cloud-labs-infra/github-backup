@@ -63,5 +63,11 @@ def parse_args(args=None) -> argparse.Namespace:
         dest="all",
         help="run backup of all data",
     )
+    parser.add_argument(
+        "--metrics_path",
+        default="/var/lib/node_exporter",
+        dest="metrics_path",
+        help="path for .prom file with metrics",
+    )
     parsed = parser.parse_args(args)
     return parsed

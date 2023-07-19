@@ -51,7 +51,7 @@ def main():
             sum(p.stat().st_size for p in Path(parsed_args.output_dir).rglob("*"))
             - git_size._value.get()
         )
-        write_to_textfile("/var/lib/node_exporter/github_backup.prom", registry)
+        write_to_textfile(f"{parsed_args.metrics_path}/github_backup.prom", registry)
 
 
 if __name__ == "__main__":
