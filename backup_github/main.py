@@ -7,7 +7,7 @@ from time import time
 from prometheus_client import write_to_textfile
 
 from backup_github.backup import Backup
-from backup_github.metrics import git_size, meta_size, registry, success, backup_time
+from backup_github.metrics import backup_time, git_size, meta_size, registry, success
 from backup_github.parse_args import parse_args
 
 logging.basicConfig(level=logging.INFO)
