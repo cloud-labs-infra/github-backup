@@ -64,7 +64,9 @@ class Backup:
         logging.debug(f"Repositories dir is {repo_dir}")
         logging.debug(f"Repositories: {self.repositories}")
         self.__save_repositories(self.repositories, repo_dir)
-        git_size.inc(sum(p.stat().st_size for p in Path(repo_dir).rglob("*")))
+        git_size.inc(
+            sum(os.path.getsize(f) for f in os.listdir(repo_dir) if os.path.isfile(f))
+        )
 
     def __get_repositories(self):
         return [repo["name"] for repo in self.api.get_repositories()]

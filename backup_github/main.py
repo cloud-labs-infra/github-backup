@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 from time import time
@@ -7,7 +8,8 @@ from time import time
 from prometheus_client import write_to_textfile
 
 from backup_github.backup import Backup
-from backup_github.metrics import backup_time, git_size, meta_size, registry, success
+from backup_github.metrics import (backup_time, git_size, meta_size, registry,
+                                   success)
 from backup_github.parse_args import parse_args
 
 logging.basicConfig(level=logging.INFO)
@@ -48,7 +50,11 @@ def main():
     finally:
         backup_time.set(int(time()))
         meta_size.set(
-            sum(p.stat().st_size for p in Path(parsed_args.output_dir).rglob("*"))
+            sum(
+                os.path.getsize(f)
+                for f in os.listdir(parsed_args.output_dir)
+                if os.path.isfile(f)
+            )
             - git_size._value.get()
         )
         write_to_textfile(f"{parsed_args.metrics_path}/github_backup.prom", registry)
