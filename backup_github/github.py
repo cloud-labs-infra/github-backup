@@ -31,9 +31,7 @@ class GithubAPI:
     def raise_by_status(self, response):
         if response.status_code == 403:
             logging.warning("Status is 403 - Rate limit exceeded exception")
-            raise self.RateLimitExceededException(
-                json.loads(response.content)
-            )
+            raise self.RateLimitExceededException(json.loads(response.content))
         elif response.status_code == 404:
             logging.warning(
                 f"Status is {response.status_code} - Client error: Not found"
