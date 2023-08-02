@@ -2,7 +2,6 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
 from time import time
 
 from prometheus_client import write_to_textfile

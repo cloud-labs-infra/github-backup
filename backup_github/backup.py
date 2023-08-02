@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 from backup_github.github import GithubAPI
