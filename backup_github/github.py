@@ -31,20 +31,18 @@ class GithubAPI:
     def raise_by_status(self, response):
         if response.status_code == 403:
             logging.warning("Status is 403 - Rate limit exceeded exception")
-            raise self.RateLimitExceededException(
-                json.loads(response.content)["message"]
-            )
+            raise self.RateLimitExceededException(json.loads(response.content))
         elif response.status_code == 404:
             logging.warning(
                 f"Status is {response.status_code} - Client error: Not found"
             )
-            raise self.ClientError(json.loads(response.content)["message"])
+            raise self.ClientError(json.loads(response.content))
         elif 400 <= response.status_code < 500:
             logging.warning(f"Status is {response.status_code} - Client error")
-            raise self.ClientError(json.loads(response.content)["message"])
+            raise self.ClientError(json.loads(response.content))
         elif 500 <= response.status_code < 600:
             logging.warning(f"Status is {response.status_code} - Server error")
-            raise self.ServerError(json.loads(response.content)["message"])
+            raise self.ServerError(json.loads(response.content))
 
     def retry(func):
         def ret(self, *args, **kwargs):
@@ -122,7 +120,7 @@ class GithubAPI:
             f"https://api.github.com/orgs/{self.organization}/memberships/{member_login}"
         )
 
-    def get_repo(self, repo_name):
+    def get_repository(self, repo_name):
         return self.make_request(
             f"https://api.github.com/repos/{self.organization}/{repo_name}"
         )
