@@ -2,21 +2,31 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from time import time
 
 from prometheus_client import write_to_textfile
 
 from backup_github.backup import Backup
-from backup_github.metrics import backup_time, git_size, meta_size, registry, success
+from backup_github.metrics import (
+    backup_interval,
+    backup_time,
+    git_size,
+    meta_size,
+    registry,
+    success,
+)
 from backup_github.parse_args import parse_args
 
 logging.basicConfig(level=logging.INFO)
 
 
 def main():
+    start = time()
     parsed_args = None
     try:
         parsed_args = parse_args(sys.argv[1:])
+
         backup = Backup(
             parsed_args.token,
             parsed_args.organization,
@@ -38,23 +48,20 @@ def main():
             logging.info("Start backup of pulls")
             backup.backup_pulls()
             logging.info("Finish backup of pulls")
-        success.set(1)
+        success.labels(parsed_args.organization).set(1)
     except argparse.ArgumentError as e:
         logging.error(e.message)
-        success.set(0)
+        success.labels(parsed_args.organization).set(0)
     except AttributeError as e:
         logging.error(e)
-        success.set(0)
+        success.labels(parsed_args.organization).set(0)
     finally:
-        backup_time.set(int(time()))
-        meta_size.set(
-            sum(
-                os.path.getsize(f)
-                for f in os.listdir(parsed_args.output_dir)
-                if os.path.isfile(f)
-            )
-            - git_size._value.get()
+        backup_time.labels(parsed_args.organization).set(int(time()))
+        meta_size.labels(parsed_args.organization).set(
+            sum(p.stat().st_size for p in Path(parsed_args.output_dir).rglob("*"))
+            - git_size.labels(parsed_args.organization)._value.get()
         )
+        backup_interval.labels(parsed_args.organization).set(time() - start)
         write_to_textfile(f"{parsed_args.metrics_path}/github_backup.prom", registry)
 
 

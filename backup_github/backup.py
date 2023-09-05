@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 from backup_github.github import GithubAPI
@@ -63,9 +64,6 @@ class Backup:
         logging.debug(f"Repositories dir is {repo_dir}")
         logging.debug(f"Repositories: {self.repositories}")
         self.__save_repositories(self.repositories, repo_dir)
-        git_size.inc(
-            sum(os.path.getsize(f) for f in os.listdir(repo_dir) if os.path.isfile(f))
-        )
 
     def __get_repositories(self):
         return [repo["name"] for repo in self.api.get_repositories()]
@@ -80,6 +78,12 @@ class Backup:
                 repo,
                 ["id", "name", "private", "fork", "default_branch", "visibility"],
                 f"{dir}/{repository}/repo.json",
+            )
+            git_size.labels(self.organization).inc(
+                sum(
+                    p.stat().st_size
+                    for p in Path(f"{dir}/{repository}/content").rglob("*")
+                )
             )
 
     def __save_repo_content(self, repository, dir):
