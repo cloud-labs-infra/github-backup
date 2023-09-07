@@ -24,6 +24,7 @@ def subprocess_handle(func, args):
         logging.error("exit code: {}".format(e.returncode))
         logging.error("stdout: {}".format(e.output.decode(sys.getfilesystemencoding())))
         logging.error("stderr: {}".format(e.stderr.decode(sys.getfilesystemencoding())))
+        raise e
 
 
 def filter_save(struct, fields, path):

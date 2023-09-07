@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -72,7 +73,8 @@ class Backup:
         for repository in repositories:
             if self.api.get_repository(repository)["size"] == 0:
                 continue
-            self.__save_repo_content(repository, dir)
+            if not self.__save_repo_content(repository, dir):
+                continue
             repo = self.api.get_repository(repository)
             filter_save(
                 repo,
@@ -103,10 +105,17 @@ class Backup:
             repo_url = (
                 f"https://{self.token}@github.com/{self.organization}/{repository}.git"
             )
-            subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
+            try:
+                subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
+            except subprocess.CalledProcessError:
+                shutil.rmtree(f"{dir}/{repository}")
+                logging.error(f"Repository {repository} backup error, will be skipped")
+                os.chdir(cur_dir)
+                return False
         os.chdir(f"{repository}.git")
         subprocess_handle(subprocess.check_output, ["git", "fetch", "-p"])
         os.chdir(cur_dir)
+        return True
 
     def __save_members(self, members, members_dir):
         for member in members:
