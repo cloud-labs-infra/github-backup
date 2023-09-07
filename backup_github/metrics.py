@@ -25,9 +25,15 @@ meta_size = Gauge(
     labelnames=["organization"],
     registry=registry,
 )
-backup_interval = Gauge(
-    "github_backup_interval_timestamp_seconds",
-    "time of last backup in unixtime",
+backup_duration = Gauge(
+    "github_backup_duration_seconds",
+    "duration of last backup in seconds",
+    labelnames=["organization"],
+    registry=registry,
+)
+rate_limit_count = Gauge(
+    "github_backup_rate_limit_count",
+    "count of rate limit",
     labelnames=["organization"],
     registry=registry,
 )

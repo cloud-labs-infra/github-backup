@@ -3,6 +3,8 @@ import time
 
 import requests
 
+from backup_github.metrics import rate_limit_count
+
 
 class GithubAPI:
     headers = dict
@@ -30,6 +32,7 @@ class GithubAPI:
     def raise_by_status(self, response):
         if response.status_code == 403:
             logging.warning("Status is 403 - Rate limit exceeded exception")
+            rate_limit_count.labels(self.organization).inc()
             raise self.RateLimitExceededException(response.content)
         elif response.status_code == 404:
             logging.warning(
