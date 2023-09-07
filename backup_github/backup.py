@@ -107,7 +107,7 @@ class Backup:
             )
             try:
                 subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 shutil.rmtree(f"{dir}/{repository}")
                 logging.error(f"Repository {repository} backup error, will be skipped")
                 os.chdir(cur_dir)
