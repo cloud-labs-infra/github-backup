@@ -8,7 +8,7 @@ from prometheus_client import write_to_textfile
 
 from backup_github.backup import Backup
 from backup_github.metrics import (
-    backup_interval,
+    backup_duration,
     backup_time,
     git_size,
     meta_size,
@@ -60,8 +60,8 @@ def main():
             sum(p.stat().st_size for p in Path(parsed_args.output_dir).rglob("*"))
             - git_size.labels(parsed_args.organization)._value.get()
         )
-        backup_interval.labels(parsed_args.organization).set(time() - start)
-        write_to_textfile(f"{parsed_args.metrics_path}/github_backup.prom", registry)
+        backup_duration.labels(parsed_args.organization).set(time() - start)
+        write_to_textfile(f"{parsed_args.metrics_path}", registry)
 
 
 if __name__ == "__main__":
