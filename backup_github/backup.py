@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -107,6 +108,13 @@ class Backup:
             )
             try:
                 subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
+                if not os.path.exists(f"{repository}.git"):
+                    time.sleep(10)
+                    subprocess_handle(
+                        subprocess.call, ["git", "clone", "--bare", repo_url]
+                    )
+                    if not os.path.exists(f"{repository}.git"):
+                        raise subprocess.CalledProcessError
             except subprocess.CalledProcessError:
                 shutil.rmtree(f"{dir}/{repository}")
                 logging.error(f"Repository {repository} backup error, will be skipped")
