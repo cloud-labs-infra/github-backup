@@ -110,7 +110,9 @@ class Backup:
                 subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
                 if not os.path.exists(f"{repository}.git"):
                     time.sleep(10)
-                    subprocess_handle(subprocess.call, ["git", "clone", "--bare", repo_url])
+                    subprocess_handle(
+                        subprocess.call, ["git", "clone", "--bare", repo_url]
+                    )
                     if not os.path.exists(f"{repository}.git"):
                         raise subprocess.CalledProcessError
             except subprocess.CalledProcessError:

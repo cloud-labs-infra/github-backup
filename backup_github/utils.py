@@ -23,8 +23,12 @@ def subprocess_handle(func, args):
         logging.error("Subprocess call error")
         logging.error("exit code: {}".format(e.returncode))
         if e.output:
-            logging.error("stdout: {}".format(e.output.decode(sys.getfilesystemencoding())))
-            logging.error("stderr: {}".format(e.stderr.decode(sys.getfilesystemencoding())))
+            logging.error(
+                "stdout: {}".format(e.output.decode(sys.getfilesystemencoding()))
+            )
+            logging.error(
+                "stderr: {}".format(e.stderr.decode(sys.getfilesystemencoding()))
+            )
         raise e
 
 
