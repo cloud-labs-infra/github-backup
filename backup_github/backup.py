@@ -114,7 +114,9 @@ class Backup:
                         subprocess.call, ["git", "clone", "--bare", repo_url]
                     )
                     if not os.path.exists(f"{repository}.git"):
-                        raise subprocess.CalledProcessError(1, ["git", "clone", "--bare", repo_url])
+                        raise subprocess.CalledProcessError(
+                            1, ["git", "clone", "--bare", repo_url]
+                        )
             except subprocess.CalledProcessError:
                 shutil.rmtree(f"{dir}/{repository}")
                 logging.error(f"Repository {repository} backup error, will be skipped")
