@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def save_json(path, content):
@@ -35,3 +36,16 @@ def subprocess_handle(func, args):
 def filter_save(struct, fields, path):
     backup = filter_fields(fields, struct)
     save_json(path, backup)
+
+
+def count_sizes(output_dir):
+    git = 0
+    repo_dir = f"{output_dir}/repos"
+    repos = list(os.walk(repo_dir))[0][1]
+    for repository in repos:
+        git += sum(
+                p.stat().st_size
+                for p in Path(f"{repo_dir}/{repository}/content").rglob("*")
+            )
+    meta = sum(p.stat().st_size for p in Path(output_dir).rglob("*")) - git
+    return {'git': git, 'meta': meta}

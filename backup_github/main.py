@@ -1,7 +1,5 @@
-import argparse
 import logging
 import sys
-from pathlib import Path
 from time import time
 
 from prometheus_client import write_to_textfile
@@ -16,6 +14,7 @@ from backup_github.metrics import (
     success,
 )
 from backup_github.parse_args import parse_args
+from backup_github.utils import count_sizes
 
 logging.basicConfig(level=logging.INFO)
 
@@ -48,18 +47,14 @@ def main():
             backup.backup_pulls()
             logging.info("Finish backup of pulls")
         success.labels(parsed_args.organization).set(1)
-    except argparse.ArgumentError as e:
-        logging.error(e.message)
-        success.labels(parsed_args.organization).set(0)
-    except AttributeError as e:
+    except Exception as e:
         logging.error(e)
         success.labels(parsed_args.organization).set(0)
     finally:
+        sizes = count_sizes(parsed_args.output_dir)
+        git_size.labels(parsed_args.organization).set(sizes['git'])
+        meta_size.labels(parsed_args.organization).set(sizes['meta'])
         backup_time.labels(parsed_args.organization).set(int(time()))
-        meta_size.labels(parsed_args.organization).set(
-            sum(p.stat().st_size for p in Path(parsed_args.output_dir).rglob("*"))
-            - git_size.labels(parsed_args.organization)._value.get()
-        )
         backup_duration.labels(parsed_args.organization).set(time() - start)
         write_to_textfile(f"{parsed_args.metrics_path}", registry)
 
