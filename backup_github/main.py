@@ -52,8 +52,8 @@ def main():
         success.labels(parsed_args.organization).set(0)
     finally:
         sizes = count_sizes(parsed_args.output_dir)
-        git_size.labels(parsed_args.organization).set(sizes['git'])
-        meta_size.labels(parsed_args.organization).set(sizes['meta'])
+        git_size.labels(parsed_args.organization).set(sizes["git"])
+        meta_size.labels(parsed_args.organization).set(sizes["meta"])
         backup_time.labels(parsed_args.organization).set(int(time()))
         backup_duration.labels(parsed_args.organization).set(time() - start)
         write_to_textfile(f"{parsed_args.metrics_path}", registry)

@@ -44,8 +44,8 @@ def count_sizes(output_dir):
     repos = list(os.walk(repo_dir))[0][1]
     for repository in repos:
         git += sum(
-                p.stat().st_size
-                for p in Path(f"{repo_dir}/{repository}/content").rglob("*")
-            )
+            p.stat().st_size
+            for p in Path(f"{repo_dir}/{repository}/content").rglob("*")
+        )
     meta = sum(p.stat().st_size for p in Path(output_dir).rglob("*")) - git
-    return {'git': git, 'meta': meta}
+    return {"git": git, "meta": meta}
