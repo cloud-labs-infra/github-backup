@@ -6,7 +6,6 @@ on:
 
 jobs:
   publish-pypi:
-    needs: release
     name: "Release to PYPI"
     runs-on: ubuntu-20.04
     steps:
