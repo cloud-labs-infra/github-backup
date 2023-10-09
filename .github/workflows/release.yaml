@@ -4,58 +4,45 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Run image
-        uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: '1.3.2'
-      - name: Install dependencies
-        run: poetry install
-      - name: Run tests
-        run: poetry run pytest --cov=./ --cov-report=xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-
-  code-quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Run image
-        uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: '1.3.2'
-      - name: Install dependencies
-        run: poetry install
-      - name: Run black
-        run: poetry run black . --check
-      - name: Run isort
-        run: poetry run isort . --check-only --profile black
-      - name: Run flake8
-        run: poetry run flake8 . --max-line-length 120
+  tests:
+    name: "Run tests"
+    uses: ./.github/workflows/push.yml
+    secrets: inherit
 
   release:
-    needs: [test, code-quality]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
-    runs-on: ubuntu-latest
+    needs: tests
+    name: "Release"
+    runs-on: ubuntu-20.04
+    permissions: write-all
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+          semantic_version: 18.0.0
+          extra_plugins: |
+            @semantic-release/changelog@6.0.0
+            @semantic-release/git@10.0.0
+            conventional-changelog-conventionalcommits@4.6.3
+
+  publish-pypi:
+    needs: release
+    name: "Release to PYPI"
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install Python Poetry
+      - name: Run image
         uses: abatilo/actions-poetry@v2
         with:
           poetry-version: '1.3.2'
-      - uses: bjoluc/semantic-release-config-poetry@v2
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
-          github_token: ${{ secrets.GH_TOKEN }}
+      - name: Publish
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build

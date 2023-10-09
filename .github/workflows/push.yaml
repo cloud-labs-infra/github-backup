@@ -1,11 +1,14 @@
 name: Push
 on:
   push:
-    branches-ignore: [ main ]
+    branches-ignore:
+      - main
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -23,7 +26,7 @@ jobs:
         uses: codecov/codecov-action@v2
 
   code-style:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -45,7 +48,7 @@ jobs:
 
   code-quality:
     needs: code-style
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
