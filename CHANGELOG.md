@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.0.8](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.7...v1.0.8) (2023-10-09)
+
+
+### Bug Fixes
+
+* step name ([a9b59e7](https://github.com/cloud-labs-infra/github-backup/commit/a9b59e7c45ace5ac00afbe87c3e227ba6af3da9e))
+
 ### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-09)
 
 
