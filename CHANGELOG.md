@@ -1,6 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See
+All notable changes to this project will be documented in this file.
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-09)
+
+
+### Bug Fixes
+
+* commit style changes ([52c0a43](https://github.com/cloud-labs-infra/github-backup/commit/52c0a43658abfd89261e5413e49da7543f2c39df))
+* style fixes ([3c7d1f7](https://github.com/cloud-labs-infra/github-backup/commit/3c7d1f71931ba17461a260ba76819dc6e7d90c52))
+
+See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
 ## [1.0.6](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.5...v1.0.6) (2023-10-09)
