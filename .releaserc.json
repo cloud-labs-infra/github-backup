@@ -1,6 +1,6 @@
 {
   "branches": [
-    "70-semantic-release"
+    "main"
   ],
   "ci": false,
   "plugins": [
