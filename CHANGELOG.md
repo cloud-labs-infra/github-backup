@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.2](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.1...v1.0.2) (2023-10-09)
+
+
+### Bug Fixes
+
+* update version for semantic release ([#73](https://github.com/cloud-labs-infra/github-backup/issues/73)) ([c805d5d](https://github.com/cloud-labs-infra/github-backup/commit/c805d5d3f755b32aa446083ba265777adb9504a5))
+
 ## [1.0.1](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.0...v1.0.1) (2023-10-09)
 
 
