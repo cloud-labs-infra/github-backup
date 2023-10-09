@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.0.9](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.8...v1.0.9) (2023-10-09)
+
+
+### Bug Fixes
+
+* publish workflow ([73919df](https://github.com/cloud-labs-infra/github-backup/commit/73919df33098d2b99663ba7177ed41e3423d8997))
+
 ### [1.0.8](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.7...v1.0.8) (2023-10-09)
 
 
