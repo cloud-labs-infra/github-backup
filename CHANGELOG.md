@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.3](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.2...v1.0.3) (2023-10-09)
+
+
+### Bug Fixes
+
+* update version pyproject.toml ([606ddb2](https://github.com/cloud-labs-infra/github-backup/commit/606ddb23b10f0089128082fe036b321c2b692cf9))
+
 ## [1.0.2](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.1...v1.0.2) (2023-10-09)
 
 
