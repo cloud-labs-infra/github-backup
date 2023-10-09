@@ -37,7 +37,7 @@ class TestArgs:
 
 class TestBackup:
     temp_dir = tempfile.TemporaryDirectory()
-    backup = Backup("token", "org", temp_dir.name, None)
+    backup = Backup("token", "org", temp_dir.name, ["test"])
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": "Bearer token",

@@ -21,12 +21,14 @@ class Backup:
         self.token = token
         self.organization = organization
         self.output_dir = f"{output_dir}/{organization}"
+        self.api = GithubAPI(self.token, self.organization, self.output_dir)
         self.repositories = repositories
+        if self.repositories is None:
+            self.repositories = self.__get_repositories()
         if not os.path.isdir(output_dir):
             logging.warning("Output directory does not exist. It will be created")
             os.mkdir(output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
-        self.api = GithubAPI(self.token, self.organization, self.output_dir)
 
     def backup_members(self):
         members_dir = f"{self.output_dir}/members"
@@ -59,8 +61,6 @@ class Backup:
             self.__save_issues(issues, issues_dir, repo)
 
     def backup_repositories(self):
-        if self.repositories is None:
-            self.repositories = self.__get_repositories()
         repo_dir = f"{self.output_dir}/repos"
         os.makedirs(repo_dir, exist_ok=True)
         logging.debug(f"Repositories dir is {repo_dir}")
