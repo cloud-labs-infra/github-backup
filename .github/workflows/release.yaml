@@ -18,12 +18,14 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+      - run: npm install @semantic-release/exec@6.0.3 -D
       - name: Release
         uses: cycjimmy/semantic-release-action@v3
         with:
           semantic_version: 18.0.0
           extra_plugins: |
             @semantic-release/changelog@6.0.0
+            @semantic-release/exec@6.0.3
             @semantic-release/git@10.0.0
             conventional-changelog-conventionalcommits@4.6.3
 
