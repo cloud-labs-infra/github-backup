@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sys
 from time import time
@@ -13,6 +14,7 @@ from backup_github.metrics import (
     registry,
     success,
 )
+from backup_github.obs import BackupObs
 from backup_github.parse_args import parse_args
 from backup_github.utils import count_sizes
 
@@ -47,6 +49,15 @@ def main():
             backup.backup_pulls()
             logging.info("Finish backup of pulls")
         success.labels(parsed_args.organization).set(1)
+        obs = BackupObs(
+            access_key_id=parsed_args.ak,
+            secret_access_key=parsed_args.sk,
+            server=parsed_args.endpoint,
+            path_style=True,
+            signature="v2",
+            is_signature_negotiation=True
+        )
+        obs.upload_backup(f'{parsed_args.organization}-{datetime.date}', parsed_args.output_dir, parsed_args.bucket)
     except Exception as e:
         logging.error(e)
         success.labels(parsed_args.organization).set(0)
