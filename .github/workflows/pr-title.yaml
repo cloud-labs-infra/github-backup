@@ -28,4 +28,4 @@ jobs:
             revert
           requireScope: false
           wip: true
-          validateSingleCommit: fals
+          validateSingleCommit: false
