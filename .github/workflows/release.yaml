@@ -6,7 +6,7 @@ on:
 jobs:
   tests:
     name: "Run tests"
-    uses: ./.github/workflows/push.yml
+    uses: ./.github/workflows/push.yaml
     secrets: inherit
 
   release:
