@@ -39,6 +39,9 @@ jobs:
         run: poetry run black .
       - name: Run isort
         run: poetry run isort . --profile black
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "fix: style fixes"
 
   code-quality:
     needs: code-style
