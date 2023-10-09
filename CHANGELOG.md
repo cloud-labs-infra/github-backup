@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.6](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.5...v1.0.6) (2023-10-09)
+
+
+### Bug Fixes
+
+* update pyproject.toml ([b7f1120](https://github.com/cloud-labs-infra/github-backup/commit/b7f112053cbdf717c32e586df0637be4840ed90a))
+
+## [1.0.5](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.4...v1.0.5) (2023-10-09)
+
+
+### Bug Fixes
+
+* push workflow ([#74](https://github.com/cloud-labs-infra/github-backup/issues/74)) ([625ba1a](https://github.com/cloud-labs-infra/github-backup/commit/625ba1a168cc18b2d553ee52aac7efab21037b73))
+
 ## [1.0.4](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.3...v1.0.4) (2023-10-09)
 
 
