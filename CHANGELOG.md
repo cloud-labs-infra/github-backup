@@ -8,6 +8,16 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 * semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+* update pyproject.toml ([24f557d](https://github.com/cloud-labs-infra/github-backup/commit/24f557d2598d3976c2341bf560e367fefdd67b1e))
+* update pyproject.toml ([5d03720](https://github.com/cloud-labs-infra/github-backup/commit/5d03720c655ec89c3460cc9de991465107fc1a50))
+* update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
 * update pyproject.toml ([5d03720](https://github.com/cloud-labs-infra/github-backup/commit/5d03720c655ec89c3460cc9de991465107fc1a50))
 * update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
 
