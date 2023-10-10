@@ -1,0 +1,25 @@
+name: Publish
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  publish-pypi:
+    name: "Release to PYPI"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: '1.3.2'
+      - name: Publish
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
