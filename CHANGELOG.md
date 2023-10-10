@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+
 ### [1.0.10](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.9...v1.0.10) (2023-10-09)
 
 
