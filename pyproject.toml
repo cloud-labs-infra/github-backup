@@ -10,6 +10,7 @@ packages = [{include = "backup_github"}]
 python = "^3.8.1"
 requests = "^2.28.2"
 prometheus_client = "^0.16.0"
+huaweicloud-sdk-python-obs = "^3.21.8"
 
 
 [tool.poetry.dev-dependencies]
