@@ -73,4 +73,4 @@ def upload_to_s3(ak, sk, endpoint, backup_dir, bucket, organization):
     if resp.status >= 300:
         logging.error(f"Uploading of backup failed, error message: {resp.errorMessage}")
         raise Exception(resp.errorMessage)
-    logging.info(f"Backup is loaded")
+    logging.info("Backup is loaded")
