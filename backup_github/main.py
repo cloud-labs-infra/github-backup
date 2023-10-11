@@ -51,6 +51,7 @@ def main():
             upload_to_s3(
                 parsed_args.ak,
                 parsed_args.sk,
+                parsed_args.endpoint,
                 parsed_args.output_dir,
                 parsed_args.bucket,
                 parsed_args.organization,
