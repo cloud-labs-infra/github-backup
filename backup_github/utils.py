@@ -62,17 +62,15 @@ def upload_to_s3(ak, sk, endpoint, backup_dir, bucket, organization):
         server=endpoint,
         path_style=True,
         signature="v2",
-        is_signature_negotiation=True
+        is_signature_negotiation=True,
     )
-    shutil.make_archive(
-        base_name='backup_archive',
-        format='gztar',
-        root_dir=backup_dir
+    shutil.make_archive(base_name="backup_archive", format="gztar", root_dir=backup_dir)
+    resp = obs.putFile(
+        bucket,
+        f'{organization}-{datetime.now().strftime("%m-%d-%Y_%H-%M")}.tar.gz',
+        "./backup_archive.tar.gz",
     )
-    resp = obs.putFile(bucket,
-                       f'{organization}-{datetime.now().strftime("%m-%d-%Y_%H-%M")}.tar.gz',
-                       './backup_archive.tar.gz')
     if resp.status >= 300:
-        logging.error(f'Uploading of backup failed, error message: {resp.errorMessage}')
+        logging.error(f"Uploading of backup failed, error message: {resp.errorMessage}")
         raise Exception(resp.errorMessage)
-    logging.info(f'Backup is loaded')
+    logging.info(f"Backup is loaded")
