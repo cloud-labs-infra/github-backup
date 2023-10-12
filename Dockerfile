@@ -12,6 +12,6 @@ RUN mkdir "/backup/metrics"
 
 RUN pip install backup-github-org==1.0.4
 
-ENTRYPOINT backup-github --all -t $ACCESS_TOKEN -o /backup/backup --metrics_path /backup/metrics/${ORGANIZATION}_github_backup.prom $ORGANIZATION
+ENTRYPOINT backup-github --all -t $ACCESS_TOKEN -o /backup/backup --metrics_path /backup/metrics/${ORGANIZATION}.prom $ORGANIZATION
 
-# Run command: docker run -d -v .\backup:/backup/backup -v .\metrics:/backup/metrics -e ACCESS_TOKEN={} -e ORGANIZATION={}
+# Run command: docker run -rm -v .\backup:/backup/backup -v .\metrics:/backup/metrics -e ACCESS_TOKEN={} -e ORGANIZATION={}
