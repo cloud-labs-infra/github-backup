@@ -1,6 +1,83 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See
+All notable changes to this project will be documented in this file.
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-11)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+* update pyproject.toml ([3df679e](https://github.com/cloud-labs-infra/github-backup/commit/3df679e2a85683218c16700732ac5a68f8f0ba9d))
+* update pyproject.toml ([24f557d](https://github.com/cloud-labs-infra/github-backup/commit/24f557d2598d3976c2341bf560e367fefdd67b1e))
+* update pyproject.toml ([5d03720](https://github.com/cloud-labs-infra/github-backup/commit/5d03720c655ec89c3460cc9de991465107fc1a50))
+* update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+* update pyproject.toml ([24f557d](https://github.com/cloud-labs-infra/github-backup/commit/24f557d2598d3976c2341bf560e367fefdd67b1e))
+* update pyproject.toml ([5d03720](https://github.com/cloud-labs-infra/github-backup/commit/5d03720c655ec89c3460cc9de991465107fc1a50))
+* update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+* update pyproject.toml ([5d03720](https://github.com/cloud-labs-infra/github-backup/commit/5d03720c655ec89c3460cc9de991465107fc1a50))
+* update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+* update pyproject.toml ([1a924a1](https://github.com/cloud-labs-infra/github-backup/commit/1a924a1c31e643c796af1c5e9a3c09a02492d6de))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-10)
+
+
+### Bug Fixes
+
+* semantic release ([#76](https://github.com/cloud-labs-infra/github-backup/issues/76)) ([a502cc1](https://github.com/cloud-labs-infra/github-backup/commit/a502cc1788ebc20a531e393f3d950b286a219a2d))
+
+### [1.0.10](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.9...v1.0.10) (2023-10-09)
+
+
+### Bug Fixes
+
+* release branch ([579397b](https://github.com/cloud-labs-infra/github-backup/commit/579397b7fe9bc049f26b82c551608bc0f2bc8b5a))
+* remove exec install ([a60f65c](https://github.com/cloud-labs-infra/github-backup/commit/a60f65c4abd3066816f3d7bec599be6f42a67c9a))
+
+### [1.0.9](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.8...v1.0.9) (2023-10-09)
+
+
+### Bug Fixes
+
+* publish workflow ([73919df](https://github.com/cloud-labs-infra/github-backup/commit/73919df33098d2b99663ba7177ed41e3423d8997))
+
+### [1.0.8](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.7...v1.0.8) (2023-10-09)
+
+
+### Bug Fixes
+
+* step name ([a9b59e7](https://github.com/cloud-labs-infra/github-backup/commit/a9b59e7c45ace5ac00afbe87c3e227ba6af3da9e))
+
+### [1.0.7](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.6...v1.0.7) (2023-10-09)
+
+
+### Bug Fixes
+
+* commit style changes ([52c0a43](https://github.com/cloud-labs-infra/github-backup/commit/52c0a43658abfd89261e5413e49da7543f2c39df))
+* style fixes ([3c7d1f7](https://github.com/cloud-labs-infra/github-backup/commit/3c7d1f71931ba17461a260ba76819dc6e7d90c52))
+
+See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
 ## [1.0.6](https://github.com/cloud-labs-infra/github-backup/compare/v1.0.5...v1.0.6) (2023-10-09)
