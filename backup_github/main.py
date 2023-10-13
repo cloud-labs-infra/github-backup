@@ -11,7 +11,7 @@ from backup_github.metrics import (
     git_size,
     meta_size,
     registry,
-    success,
+    success, rate_limit_count,
 )
 from backup_github.parse_args import parse_args
 from backup_github.utils import count_sizes
@@ -25,6 +25,7 @@ def main():
     try:
         parsed_args = parse_args(sys.argv[1:])
         success.labels(parsed_args.organization).set(0)
+        rate_limit_count.labels(parsed_args.organization).set(0)
         backup = Backup(
             parsed_args.token,
             parsed_args.organization,
