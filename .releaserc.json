@@ -38,6 +38,12 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "sed -i 's/^version.*$/backup-github-org==\"${nextRelease.version}\"/' Dockerfile ; cat Dockerfile"
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "assets": [
