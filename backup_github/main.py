@@ -10,8 +10,9 @@ from backup_github.metrics import (
     backup_time,
     git_size,
     meta_size,
+    rate_limit_count,
     registry,
-    success, rate_limit_count,
+    success,
 )
 from backup_github.parse_args import parse_args
 from backup_github.utils import count_sizes
