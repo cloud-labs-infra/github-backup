@@ -24,7 +24,7 @@ def main():
     parsed_args = None
     try:
         parsed_args = parse_args(sys.argv[1:])
-
+        success.labels(parsed_args.organization).set(0)
         backup = Backup(
             parsed_args.token,
             parsed_args.organization,
@@ -51,7 +51,7 @@ def main():
         logging.error(e)
         success.labels(parsed_args.organization).set(0)
     finally:
-        sizes = count_sizes(parsed_args.output_dir)
+        sizes = count_sizes(parsed_args.output_dir, parsed_args.organization)
         git_size.labels(parsed_args.organization).set(sizes["git"])
         meta_size.labels(parsed_args.organization).set(sizes["meta"])
         backup_time.labels(parsed_args.organization).set(int(time()))
