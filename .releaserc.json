@@ -40,7 +40,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's/^version.*$/backup-github-org==\"${nextRelease.version}\"/' Dockerfile ; cat Dockerfile"
+        "prepareCmd": "sed -i 's/backup-github-org.*$/backup-github-org==${nextRelease.version}/' Dockerfile ; cat Dockerfile"
       }
     ],
     [
