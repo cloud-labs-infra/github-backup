@@ -1,9 +1,13 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
+
+import boto3 as boto3
 
 
 def save_json(path, content):
@@ -49,3 +53,24 @@ def count_sizes(output_dir):
         )
     meta = sum(p.stat().st_size for p in Path(output_dir).rglob("*")) - git
     return {"git": git, "meta": meta}
+
+
+def upload_to_s3(ak, sk, endpoint, backup_dir, bucket, organization):
+    session = boto3.session.Session()
+    s3 = session.client(
+        service_name="s3",
+        aws_access_key_id=ak,
+        aws_secret_access_key=sk,
+        endpoint_url=endpoint,
+        verify=False,
+    )
+    shutil.make_archive(base_name="backup_archive", format="gztar", root_dir=backup_dir)
+    resp = s3.upload_file(
+        "./backup_archive.tar.gz",
+        bucket,
+        f'{organization}-{datetime.now().strftime("%m-%d-%Y_%H-%M")}.tar.gz',
+    )
+    if resp.status >= 300:
+        logging.error(f"Uploading of backup failed, error message: {resp.errorMessage}")
+        raise Exception(resp.errorMessage)
+    logging.info("Backup is loaded")

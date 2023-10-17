@@ -14,7 +14,7 @@ from backup_github.metrics import (
     success,
 )
 from backup_github.parse_args import parse_args
-from backup_github.utils import count_sizes
+from backup_github.utils import count_sizes, upload_to_s3
 
 logging.basicConfig(level=logging.INFO)
 
@@ -47,6 +47,15 @@ def main():
             backup.backup_pulls()
             logging.info("Finish backup of pulls")
         success.labels(parsed_args.organization).set(1)
+        if parsed_args.bucket:
+            upload_to_s3(
+                parsed_args.ak,
+                parsed_args.sk,
+                parsed_args.endpoint,
+                parsed_args.output_dir,
+                parsed_args.bucket,
+                parsed_args.organization,
+            )
     except Exception as e:
         logging.error(e)
         success.labels(parsed_args.organization).set(0)

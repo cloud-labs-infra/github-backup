@@ -69,5 +69,25 @@ def parse_args(args=None) -> argparse.Namespace:
         dest="metrics_path",
         help="path for .prom file with metrics",
     )
+    parser.add_argument(
+        "--ak",
+        dest="ak",
+        help="AK for obs",
+    )
+    parser.add_argument(
+        "--sk",
+        dest="sk",
+        help="SK for obs",
+    )
+    parser.add_argument(
+        "--endpoint",
+        dest="endpoint",
+        help="endpoint for obs",
+    )
+    parser.add_argument(
+        "--bucket",
+        dest="bucket",
+        help="bucket name",
+    )
     parsed = parser.parse_args(args)
     return parsed
