@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from obs import ObsClient
+import boto3 as boto3
 
 
 def save_json(path, content):
@@ -56,19 +56,19 @@ def count_sizes(output_dir):
 
 
 def upload_to_s3(ak, sk, endpoint, backup_dir, bucket, organization):
-    obs = ObsClient(
-        access_key_id=ak,
-        secret_access_key=sk,
-        server=endpoint,
-        path_style=True,
-        signature="v2",
-        is_signature_negotiation=True,
+    session = boto3.session.Session()
+    s3 = session.client(
+        service_name='s3',
+        aws_access_key_id=ak,
+        aws_secret_access_key=sk,
+        endpoint_url=endpoint,
+        verify=False
     )
     shutil.make_archive(base_name="backup_archive", format="gztar", root_dir=backup_dir)
-    resp = obs.putFile(
+    resp = s3.upload_file(
+        "./backup_archive.tar.gz",
         bucket,
         f'{organization}-{datetime.now().strftime("%m-%d-%Y_%H-%M")}.tar.gz',
-        "./backup_archive.tar.gz",
     )
     if resp.status >= 300:
         logging.error(f"Uploading of backup failed, error message: {resp.errorMessage}")
