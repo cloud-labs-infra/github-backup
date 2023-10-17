@@ -58,11 +58,11 @@ def count_sizes(output_dir):
 def upload_to_s3(ak, sk, endpoint, backup_dir, bucket, organization):
     session = boto3.session.Session()
     s3 = session.client(
-        service_name='s3',
+        service_name="s3",
         aws_access_key_id=ak,
         aws_secret_access_key=sk,
         endpoint_url=endpoint,
-        verify=False
+        verify=False,
     )
     shutil.make_archive(base_name="backup_archive", format="gztar", root_dir=backup_dir)
     resp = s3.upload_file(
