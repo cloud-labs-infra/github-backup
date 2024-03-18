@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "github-backup"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  schedule: {{ .Values.schedule }}
+  successfulJobsHistoryLimit: 0
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            dataset.0.id: "s3"
+            dataset.0.useas: "mount"
+        spec:
+          containers:
+            - name: "s3"
+              image: {{ .Values.image.s3.repository }}:{{ .Values.image.s3.tag | default .Chart.AppVersion }}
+              command: [ /bin/bash ]
+              args: [ "-c","cat /data/hello_there.txt" ]
+              volumeMounts:
+                - name: data-dir
+                  mountPath: /dir/to_s3
+          initContainers:
+            - name: "github-backup"
+              image: {{ .Values.image.backup.repository }}:{{ .Values.image.backup.tag | default .Chart.AppVersion }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["backup-github", "--all", "-t", "$(TOKEN)", "-o", "/backup/backup", "--metrics_path", "/backup/backup/backup.prom", "$(ORGANIZATION)"]
+              volumeMounts:
+                - name: data-dir
+                  mountPath: /backup
+              env:
+                - name: TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: github-backup
+                      key: token
+                - name: ORGANIZATION
+                  valueFrom:
+                    secretKeyRef:
+                      name: github-backup
+                      key: organization
+          volumes:
+            - name: data-dir
+              emptyDir: {}
+          restartPolicy: {{ .Values.restartPolicy }}

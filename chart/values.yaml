@@ -1,0 +1,17 @@
+image:
+  backup:
+    repository: "backup"
+    tag: "latest"
+  s3:
+    repository: "s3"
+    tag: "latest"
+  pullPolicy: Never
+
+restartPolicy: Never
+schedule: '"53 14 * * *"'
+
+persistentVolume:
+  name: backup-pv-storage
+
+persistentVolumeClaim:
+  name: backup-pv-claim

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-inspector
+spec:
+  volumes:
+    - name: {{ .Values.persistentVolume.name }}
+      persistentVolumeClaim:
+        claimName: {{ .Values.persistentVolumeClaim.name }}
+  containers:
+  - image: busybox
+    name: pvc-inspector
+    command: ["tail"]
+    args: ["-f", "/dev/null"]
+    volumeMounts:
+    - mountPath: /pvc
+      name: {{ .Values.persistentVolume.name }}
